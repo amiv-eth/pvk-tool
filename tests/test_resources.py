@@ -21,15 +21,15 @@ def test_create(client):
         'room': 'ETZ E 6',
         'spots': 30,
         'signup': {
-            'start': 'Mon, 01 Jun 2020 01:15:00 GMT',
-            'end': 'Mon, 01 Jun 2020 04:15:00 GMT',
+            'start': '2020-05-01T10:00:00Z',
+            'end': '2020-05-05T23:59:59Z',
         },
         'datetimes': [{
-            'start': 'Mon, 01 Jun 2020 08:15:00 GMT',
-            'end': 'Mon, 01 Jun 2020 08:15:00 GMT',
+                'start': '2020-06-05T10:00:00Z',
+                'end': '2020-06-05T12:00:00Z',
             }, {
-            'start': 'Tue, 02 Jun 2020 08:15:00 GMT',
-            'end': 'Tue, 02 Jun 2020 08:15:00 GMT',
+                'start': '2020-06-06T10:00:00Z',
+                'end': '2020-06-06T12:00:00Z',
             }],
     }
     course_response = client.post('courses', data=course, assert_status=201)

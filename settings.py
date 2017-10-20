@@ -9,6 +9,8 @@ MONGO_DBNAME = 'pvk'
 
 RESOURCE_METHODS = ['GET', 'POST']
 
+# ISO 8601 time format instead of rfc1123
+DATE_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 
 # A schema for required start/end time tuple
 TIMESPAN = {
