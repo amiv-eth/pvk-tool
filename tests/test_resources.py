@@ -1,6 +1,5 @@
 """Tests for basic requests to all resources."""
 
-
 from flask import g
 
 
@@ -86,3 +85,35 @@ def test_no_double_signup(app):
         _signup(first, 422)
         # Sign up to other courses still fine
         _signup(second, 201)
+
+
+
+def test_no_patch(app):
+    """Test that certain fields cannot be changed.
+
+    These are: Course->lecture and signup->nethz
+    """
+    no_patch_error = "this field can not be changed with PATCH"
+    with app.test_request_context():
+        # Fake a admin user
+        g.user = 'Not None :)'
+        g.admin = True
+        headers = {'Authorization': 'Token Trolololo', 'If-Match': 'tag'}
+
+        # Create fake resources, make sure to set _etag so we can patch
+        course = str(app.data.driver.db['courses'].insert({'_etag': 'tag'}))
+        signup = str(app.data.driver.db['signups'].insert({'_etag': 'tag'}))
+        # Make sure that the objectid of patch data is valid
+        new_lecture = str(app.data.driver.db['lectures'].insert({}))
+
+        course_url = '/courses/' + course
+        signup_url = '/signups/' + signup
+
+        response = app.client.patch(course_url, headers=headers,
+                                    data={'lecture': new_lecture},
+                                    assert_status=422)
+        assert response["_issues"]["lecture"] == no_patch_error
+        response = app.client.patch(signup_url, headers=headers,
+                                    data={'nethz': 'lalala'},
+                                    assert_status=422)
+        assert response["_issues"]["nethz"] == no_patch_error

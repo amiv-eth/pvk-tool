@@ -90,6 +90,7 @@ DOMAIN = {
                     'field': '_id',
                     'embeddable': True
                 },
+                'not_patchable': True,  # Course is tied to lecture
             },
             'assistant': {
                 'type': 'objectid',
@@ -132,6 +133,7 @@ DOMAIN = {
                 'nullable': False,
                 'required': True,
                 'only_own_nethz': True,
+                'not_patchable': True,  # Signup is tied to user
             },
             'course': {
                 'type': 'objectid',

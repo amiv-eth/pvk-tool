@@ -144,3 +144,8 @@ class APIValidator(Validator):
             self._error(field, "value already exists in the database in " +
                         "combination with values for: %s" %
                         unique_combination)
+
+    def _validate_not_patchable(self, enabled, field, value):
+        """Inhibit patching of the field, copied from AMIVAPI."""
+        if enabled and (request.method == 'PATCH'):
+            self._error(field, "this field can not be changed with PATCH")

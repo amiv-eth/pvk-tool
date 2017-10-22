@@ -7,7 +7,7 @@ from os import getcwd
 from eve import Eve
 from flask import Config
 
-from auth import APIAuth, APIValidator, only_own_signups
+from security import APIAuth, APIValidator, only_own_signups
 
 
 def create_app(settings=None):
