@@ -1,8 +1,8 @@
 """Test fixtures."""
 
-import pytest
-
 import json
+
+import pytest
 
 from pymongo import MongoClient
 from flask.testing import FlaskClient
@@ -38,17 +38,21 @@ class TestClient(FlaskClient):
         return json.loads(response.get_data(as_text=True))
 
 
-def dropDB(app):
+def drop_database(application):
     """Drop drop drop!"""
-    connection = MongoClient(app.config['MONGO_HOST'],
-                             app.config['MONGO_PORT'])
-    connection.drop_database(app.config['MONGO_DBNAME'])
+    connection = MongoClient(application.config['MONGO_HOST'],
+                             application.config['MONGO_PORT'])
+    connection.drop_database(application.config['MONGO_DBNAME'])
     connection.close()
 
 
-@pytest.fixture(scope='session')
-def client():
-    app = create_app(settings=TEST_SETTINGS)
-    app.test_client_class = TestClient
-    yield app.test_client()
-    dropDB(app)
+@pytest.fixture
+def app():
+    """Create app, instantiate test client, drop DB after use."""
+    application = create_app(settings=TEST_SETTINGS)
+    application.test_client_class = TestClient
+    application.client = application.test_client()
+    yield application
+    drop_database(application)
+
+

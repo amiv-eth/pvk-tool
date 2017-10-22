@@ -1,4 +1,8 @@
-"""API Configuration."""
+"""Configuration."""
+
+# AMIVAPI URL and Admin Group
+AMIVAPI_URL = "https://amiv-api.ethz.ch"
+ADMIN_GROUP_NAME = 'PVK Admins'
 
 # DB
 MONGO_HOST = 'localhost'
@@ -7,10 +11,14 @@ MONGO_USERNAME = 'pvkuser'
 MONGO_PASSWORD = 'pvkpass'
 MONGO_DBNAME = 'pvk'
 
+
 RESOURCE_METHODS = ['GET', 'POST']
+ITEM_METHODS = ['GET', 'PATCH', 'DELETE']
+
 
 # ISO 8601 time format instead of rfc1123
 DATE_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
+
 
 # A schema for required start/end time tuple
 TIMESPAN = {
@@ -120,14 +128,10 @@ DOMAIN = {
             'nethz': {
                 'type': 'string',
                 'maxlength': 10,
-                'unique': True,
                 'empty': False,
                 'nullable': False,
                 'required': True,
-            },
-            'name': {
-                'type': 'string',
-                'readonly': True,
+                'only_own_nethz': True,
             },
             'course': {
                 'type': 'objectid',
@@ -136,7 +140,7 @@ DOMAIN = {
                     'field': '_id',
                     'embeddable': True
                 },
-
+                'unique_combination': ['nethz'],
             },
             'status': {
                 'type': 'string',

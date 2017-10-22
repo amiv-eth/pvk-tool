@@ -4,6 +4,8 @@ from os import getcwd
 from eve import Eve
 from flask import Config
 
+from auth import APIAuth, APIValidator, only_own_signups
+
 
 def create_app(settings=None):
     """Super simply bootstrapping for easier testing."""
@@ -11,7 +13,13 @@ def create_app(settings=None):
     config.from_object('settings')
     if settings is not None:
         config.update(settings)
-    return Eve(settings=config)
+    application = Eve(auth=APIAuth, validator=APIValidator, settings=config)
+
+    for method in ['GET', 'PATCH', 'DELETE']:
+        event = getattr(application, 'on_pre_%s_signups' % method)
+        event += only_own_signups
+
+    return application
 
 
 app = create_app()
