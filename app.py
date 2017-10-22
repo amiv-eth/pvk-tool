@@ -1,4 +1,7 @@
-"""The main app."""
+"""The main app.
+
+Check settings.py for the resource schema and API configuration.
+"""
 
 from os import getcwd
 from eve import Eve
