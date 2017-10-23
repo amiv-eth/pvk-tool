@@ -1,4 +1,13 @@
-"""Test fixtures."""
+"""Test Helpers.
+
+Most importantly, set the test db credentials and provide an `app` fixture
+which tests can use to get an app object with test client.
+
+This fixture automatically ensures that the database is dropped after the test.
+
+Furthermore the test client is modified a bit compared to the default client
+to allow easier assertion of status_codes and make json handling easier.
+"""
 
 import json
 
@@ -13,8 +22,8 @@ TEST_SETTINGS = {
     'MONGO_HOST': 'localhost',
     'MONGO_PORT': 27017,
     'MONGO_DBNAME': 'pvk_test',
-    'MONGO_USERNAME': 'pvkuser',
-    'MONGO_PASSWORD': 'pvkpass',
+    'MONGO_USERNAME': 'pvk_user',
+    'MONGO_PASSWORD': 'pvk_pass',
 }
 
 
@@ -54,5 +63,3 @@ def app():
     application.client = application.test_client()
     yield application
     drop_database(application)
-
-

@@ -1,4 +1,4 @@
-"""Tests for basic requests to all resources."""
+"""Tests for basic requests to all resources as admin."""
 
 from flask import g
 

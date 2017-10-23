@@ -1,4 +1,4 @@
-"""Tests for authentication."""
+"""Tests for all security function."""
 
 import pytest
 
@@ -25,7 +25,6 @@ def test_auth_required_for_item(app, resource, method):
     getattr(app.client, method)('/%s/%s' % (resource, _id),
                                 data={},
                                 assert_status=401)
-
 
 
 @pytest.mark.parametrize('resource', ['lectures', 'assistants', 'courses'])
@@ -144,6 +143,7 @@ def test_user_signup_visibility(app):
         # Delete (etag missing again)
         app.client.delete(own_url, headers=token, assert_status=412)
         app.client.delete(other_url, headers=token, assert_status=404)
+
 
 def test_admin_signup_visibility(app):
     """Test that we an admin can see others' signups."""

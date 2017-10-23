@@ -1,10 +1,25 @@
-"""AMIVAPI Authentication.
+"""AMIVAPI Authentication, Validation and Filtering.
 
-We use the `g` globals as intermediate storage:
-- g['user'] is the user_id if the token was valid, otherwise None
-- g['admin'] is True if the user is an admin, False otherwise
+All functions in here implement additional restrictions for security,
+e.g. that users can only see/modify their own signups.
 
-(This allows easier testing since we can just modify g)
+The important bits are:
+
+- Several functions to access AMIVAPI
+
+  We use the Flask `g` request globals to store results. This way, we don't
+  need to worry about sending a request twice. Furthermore, we can directly set
+  the values in `g` to avoid API requests during unittests.
+
+- Authentication class working with tokens.
+
+  Take a look at the [Eve docs](http://python-eve.org/authentication.html) for
+  more info.
+
+- Additional Validation rules
+
+  More info [here](http://python-eve.org/validation.html).
+
 """
 
 from functools import wraps
@@ -15,12 +30,28 @@ from eve.io.mongo import Validator
 from flask import request, g, current_app
 
 
+# Requests to AMIVAPI
+
+def api_get(resource, where, projection):
+    """Format and send a GET request to AMIVAPI. Return json data or None."""
+    url = requests.compat.urljoin(current_app.config['AMIVAPI_URL'], resource)
+    headers = {'Authorization': "Token %s" % g.token}
+    params = {
+        'where': json.dumps(where),
+        'projection': json.dumps(projection)
+    }
+    response = requests(url, params=params, headers=headers)
+    if response.status_code == 200:
+        return response.json()
+
+
 def request_cache(key):
-    """User as decorator: safe the function return in g[key]."""
+    """Use as decorator: Cache the function return in g.key."""
     def decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
             try:
+                # If the value is already in g, don't call function
                 return getattr(g, key)
             except KeyError:
                 setattr(g, key, f(*args, **kwargs))
@@ -29,23 +60,10 @@ def request_cache(key):
     return decorator
 
 
-def api_get(resource, token, where, projection):
-    """Format and send a GET request to AMIVAPI. Return json data or None."""
-    url = requests.compat.urljoin(current_app.config['AMIVAPI_URL'], resource)
-    headers = {'Authorization': "Token %s" % token}
-    params = {
-        'where': json.dumps(where),
-        'projection': json.dumps(projection)
-    }
-    response = requests(url, params=params, headers=auth_header(token))
-    if response.status_code == 200:
-        return response.json()
-
 @request_cache('user')
 def get_user():
     """Return user id if the token is valid, None otherwise."""
-    token = g.get(token, '')
-    response = api_get('sessions', token, {'token': token}, {'user': 1})
+    response = api_get('sessions', {'token': g.get('token', '')}, {'user': 1})
     if response:
         return response['_items'][0]['user']
 
@@ -54,9 +72,8 @@ def get_user():
 def get_nethz():
     """Return nethz of current user."""
     if get_user() is not None:
-        response = api_get('users/%s' % get_user(), token, {}, {'nethz': 1})
+        response = api_get('users/%s' % get_user(), {}, {'nethz': 1})
         return response.get('nethz')
-
 
 
 @request_cache('admin')
@@ -66,17 +83,16 @@ def is_admin():
     The result is saved in g, to avoid checking twice, so there is no
     performance loss if is_admin is called multiple times during a request.
     """
-    token = g.get(token, '')
     user_id = get_user()
     if user_id is not None:
         # Find Group with correct name, return list of members
-        groups = api_get('groups', token,
+        groups = api_get('groups',
                          {'name': current_app.config['ADMIN_GROUP_NAME']},
                          {'_id': 1})
         if groups:
             group_id = groups['_items'][0]['_id']
 
-            membership = api_get('groupmemberships', token,
+            membership = api_get('groupmemberships',
                                  {'user': user_id, 'group': group_id},
                                  {'_id': 1})
 
@@ -86,11 +102,17 @@ def is_admin():
     return False
 
 
+# Auth
+
 class APIAuth(TokenAuth):
-    """Verifies the presented with AMIVAPI."""
+    """Verifies the request token with AMIVAPI."""
 
     def check_auth(self, token, allowed_roles, resource, method):
-        """Allow request if token exists in AMIVAPI."""
+        """Allow request if token exists in AMIVAPI.
+
+        Furthermore, grant admin rights if the user is member of the
+        admin group.
+        """
         g.token = token  # Safe in g such that other methods can use it
 
         # Valid Login always required
@@ -102,7 +124,7 @@ class APIAuth(TokenAuth):
         return method == 'GET' or (resource == 'signups') or is_admin()
 
 
-# Hook to filter signups
+# Dynamic Filter
 
 def only_own_signups(request, lookup):
     """Users can only see signups if their ID matches."""
@@ -112,7 +134,7 @@ def only_own_signups(request, lookup):
         lookup.setdefault('$and', []).append({'nethz': get_nethz()})
 
 
-# Validator that allows to check nethz
+# Validation
 
 class APIValidator(Validator):
     """Provide a rule to check nethz of current user."""
@@ -140,12 +162,13 @@ class APIValidator(Validator):
                 if key not in self.document.keys():
                     lookup[key] = original[key]
 
-        if current_app.data.find_one(self.resource, None, **lookup) is not None:
+        resource = self.resource
+        if current_app.data.find_one(resource, None, **lookup) is not None:
             self._error(field, "value already exists in the database in " +
                         "combination with values for: %s" %
                         unique_combination)
 
     def _validate_not_patchable(self, enabled, field, value):
-        """Inhibit patching of the field, copied from AMIVAPI."""
+        """Inhibit patching of the field, also copied from AMIVAPI."""
         if enabled and (request.method == 'PATCH'):
             self._error(field, "this field can not be changed with PATCH")

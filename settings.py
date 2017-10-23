@@ -1,4 +1,8 @@
-"""Configuration."""
+"""Data Model and General Configuration of Eve.
+
+Check out [the Eve docs for configuration](http://python-eve.org/config.html)
+if you are unsure about some of the settings.
+"""
 
 # AMIVAPI URL and Admin Group
 AMIVAPI_URL = "https://amiv-api.ethz.ch"
