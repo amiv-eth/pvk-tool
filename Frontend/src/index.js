@@ -1,34 +1,32 @@
-var m = require("mithril")
-var root = document.body
+const m = require('mithril');
+const { Session } = require('./api.js');
 
-var Layout = require("./layout.js")
+const Layout = require('./Layout.js');
 
-var user = {}
+const UserSidebar = require('./UserSidebar.js');
+const AdminSidebar = require('./AdminSidebar.js');
 
-// var MyComponent = require("./mycomponent")
-
-var count = 0 // added a variable
-
-var Hello = {
-    view: function() {
-        return m("main", [
-            m("h1", {class: "title"}, "My first app"),
-            // changed the next line
-            m("button", {onclick: function() {count++}}, count + " clicks"),
-        ])
-    }
-}
-
-var Splash = {
-    view: function() {
-        return m("a", {href: "#!/hello"}, "Enter!")
-    }
-}
+const CourseList = require('./CourseList.js');
+const CourseOverview = require('./CourseOverview.js');
 
 
-
-m.route(root, "/courses", {
-    "/courses": {render() {return m(Layout, m(Splash))}},
-    "/hello": {render() {return m(Layout, m(Hello))}},
-})
-
+m.route(document.body, '/courses', {
+  '/courses': {
+    render() {
+      return m(Layout, {
+        sidebar: UserSidebar,
+        content: CourseList,
+      });
+    },
+  },
+  '/admin': {
+    render() {
+      // If not admin, redirect to Courses
+      if (!Session.admin) { m.route.set('/course'); }
+      return m(Layout, {
+        sidebar: AdminSidebar,
+        content: CourseOverview,
+      });
+    },
+  },
+});
