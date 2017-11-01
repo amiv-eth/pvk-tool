@@ -1,0 +1,17 @@
+image: node:latest
+
+stages:
+  - lint
+
+before_script:
+  - cd ./Frontend/
+  - npm install
+  - cd ../
+
+frontend_eslint:
+  stage: lint
+  when: always
+  script:
+    - cd ./Frontend/
+    - npm run lint
+    - cd ../
