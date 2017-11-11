@@ -2,6 +2,9 @@
 
 Check out [the Eve docs for configuration](http://python-eve.org/config.html)
 if you are unsure about some of the settings.
+
+Several validation rules are still missing, they are marked with TODO in the
+schema directly.
 """
 
 from os import environ
@@ -28,7 +31,7 @@ DATE_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 
 
 # A schema for required start/end time tuple
-TIMESPAN = {
+TIMESPAN_SCHEMA = {
     'type': 'dict',
     'schema': {
         'start': {
@@ -43,6 +46,10 @@ TIMESPAN = {
         },
     },
 }
+
+
+# Same as Eve, but include 403
+STANDARD_ERRORS = [400, 401, 403, 404, 405, 406, 409, 410, 412, 422, 428]
 
 
 # Resources
@@ -69,25 +76,21 @@ DOMAIN = {
                 'max': 3,
                 'required': True
             },
+            'assistants': {
+                # List of nethz of assistants
+                'type': 'list',
+                'schema': {
+                    'type': 'string',
+                    'maxlength': 10,
+                    'empty': False,
+                    'nullable': False,
+                }
+                # TODO: Not the same nethz twice
+                # TODO: nethz is enough?
+            }
         },
     },
 
-    'assistants': {
-        'schema': {
-            'nethz': {
-                'type': 'string',
-                'maxlength': 10,
-                'unique': True,
-                'empty': False,
-                'nullable': False,
-                'required': True,
-            },
-            'name': {
-                'type': 'string',
-                'readonly': True,
-            },
-        },
-    },
     'courses': {
         'schema': {
             'lecture': {
@@ -100,19 +103,16 @@ DOMAIN = {
                 'not_patchable': True,  # Course is tied to lecture
             },
             'assistant': {
-                'type': 'objectid',
-                'data_relation': {
-                    'resource': 'assistants',
-                    'field': '_id',
-                    'embeddable': True
-                },
+                'type': 'string'
+                # TODO: Assistant needs to exist for lecture
             },
 
-            'signup': TIMESPAN,
+            'signup': TIMESPAN_SCHEMA,
 
             'datetimes': {
                 'type': 'list',
-                'schema': TIMESPAN,
+                'schema': TIMESPAN_SCHEMA,
+                # TODO: Timeslots must not overlap
             },
             'room': {
                 'type': 'string',
@@ -121,6 +121,7 @@ DOMAIN = {
                 'required': True,
                 'nullable': False,
                 'empty': False,
+                # TODO: Room must be empty for time slot
             },
             'spots': {
                 'type': 'integer',
@@ -132,6 +133,8 @@ DOMAIN = {
     },
 
     'signups': {
+        # Signup for a user to a course
+
         'schema': {
             'nethz': {
                 'type': 'string',
@@ -150,12 +153,65 @@ DOMAIN = {
                     'embeddable': True
                 },
                 'unique_combination': ['nethz'],
+                # TODO: No overlapping courses
             },
             'status': {
                 'type': 'string',
-                'allowed': ['waiting', 'accepted', 'accepted+paid'],
+                'allowed': ['waiting', 'reserved', 'accepted'],
                 'readonly': True,
             },
         },
+    },
+
+    'selections': {
+        # Easy way for users to safe their selections before signup is open
+        # List of selected courses per user
+
+        'schema': {
+            'nethz': {
+                'type': 'string',
+                'maxlength': 10,
+                'empty': False,
+                'nullable': False,
+                'required': True,
+                'only_own_nethz': True,
+                'unique': True,
+            },
+            'courses': {
+                'type': 'list',
+                'schema': {
+                    'type': 'objectid',
+                    'data_relation': {
+                        'resource': 'courses',
+                        'field': '_id',
+                        'embeddable': True
+                    },
+                    # TODO: No duplicate entries
+                    # TODO: No entries that are already reserved
+                },
+            },
+        },
+    },
+
+    'payments': {
+        # Dummy endpoint for payments.
+        # TODO: Implement as soon as PSP is known.
+
+        'schema': {
+            'signups': {
+                'type': 'list',
+                'schema': {
+                    'type': 'objectid',
+                    'data_relation': {
+                        'resource': 'signups',
+                        'field': '_id',
+                        'embeddable': True
+                    },
+                    # TODO: No duplicate entries
+                },
+                'required': True,
+                'nullable': False,
+            }
+        }
     }
 }

@@ -1,35 +1,22 @@
 """Tests for basic requests to all resources as admin."""
 
-from flask import g
-
 
 def test_create(app):
     """Test creating everything as an admin user."""
-    with app.test_request_context():
-        # Fake a admin user
-        g.user = 'Not None :)'
-        g.admin = True
-        faketoken = {'Authorization': 'Token Trolololo'}
-
+    with app.admin():
         lecture = {
             'title': "Awesome Lecture",
             'department': "itet",
             'year': 3,
+            'assistants': ['pablo', 'pablone'],
         }
         lecture_response = app.client.post('lectures',
                                            data=lecture,
-                                           headers=faketoken,
                                            assert_status=201)
-
-        assistant = {'nethz': "Pablo"}
-        assistant_response = app.client.post('assistants',
-                                             data=assistant,
-                                             headers=faketoken,
-                                             assert_status=201)
 
         course = {
             'lecture': lecture_response['_id'],
-            'assistant': assistant_response['_id'],
+            'assistant': 'pablo',
             'room': 'ETZ E 6',
             'spots': 30,
             'signup': {
@@ -46,26 +33,29 @@ def test_create(app):
         }
         course_response = app.client.post('courses',
                                           data=course,
-                                          headers=faketoken,
                                           assert_status=201)
+
+        selection = {
+            'nethz': 'Pablito',
+            'courses': [course_response['_id']]
+        }
+        app.client.post('selections', data=selection, assert_status=201)
 
         signup = {
             'nethz': "Pablito",
             'course': course_response['_id']
         }
-        app.client.post('signups',
-                        data=signup,
-                        headers=faketoken,
-                        assert_status=201)
+        signup_response = app.client.post('signups',
+                                          data=signup,
+                                          assert_status=201)
+
+        payment = {'signups': [signup_response['_id']]}
+        app.client.post('payments', data=payment, assert_status=201)
+
 
 def test_no_double_signup(app):
     """Users can signup for several courses, but not for any course twice."""
-    with app.test_request_context():
-        # Fake a admin user
-        g.user = 'Not None :)'
-        g.admin = True
-        faketoken = {'Authorization': 'Token Trolololo'}
-
+    with app.admin():
         # Create two fake courses to sign up to
         first = str(app.data.driver.db['courses'].insert({}))
         second = str(app.data.driver.db['courses'].insert({}))
@@ -77,7 +67,6 @@ def test_no_double_signup(app):
             }
             app.client.post('signups',
                             data=signup,
-                            headers=faketoken,
                             assert_status=assert_status)
 
         # No Double signup to same course
@@ -87,18 +76,14 @@ def test_no_double_signup(app):
         _signup(second, 201)
 
 
-
 def test_no_patch(app):
     """Test that certain fields cannot be changed.
 
     These are: Course->lecture and signup->nethz
     """
     no_patch_error = "this field can not be changed with PATCH"
-    with app.test_request_context():
-        # Fake a admin user
-        g.user = 'Not None :)'
-        g.admin = True
-        headers = {'Authorization': 'Token Trolololo', 'If-Match': 'tag'}
+    with app.admin():
+        headers = {'If-Match': 'tag'}
 
         # Create fake resources, make sure to set _etag so we can patch
         course = str(app.data.driver.db['courses'].insert({'_etag': 'tag'}))

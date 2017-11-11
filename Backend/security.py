@@ -27,7 +27,7 @@ import json
 import requests
 from eve.auth import TokenAuth
 from eve.io.mongo import Validator
-from flask import request, g, current_app
+from flask import request, g, current_app, abort
 
 
 # Requests to AMIVAPI
@@ -112,16 +112,26 @@ class APIAuth(TokenAuth):
 
         Furthermore, grant admin rights if the user is member of the
         admin group.
+
+        By default, Eve only returns 401, we refine this a little:
+        - 401 if token missing (eve default already) or not found in AMIVAPI
+        - 403 if not permitted
+
         """
         g.token = token  # Safe in g such that other methods can use it
 
-        # Valid Login always required
+        # Return 401 if token not recognized by AMIVAPI
         if get_user() is None:
             return False
 
-        # Read always allowed
-        # Write any resource but 'signups': you need to be an admin
-        return method == 'GET' or (resource == 'signups') or is_admin()
+        # Check Permissions, return 403 if not permitted
+        # Users: Read always allowed, write only on specific resources
+        # Admins: Can do all
+        user_writable = ['signups', 'selections', 'payments']
+        if (method == 'GET' or (resource in user_writable) or is_admin()):
+            return True
+        else:
+            abort(403)
 
 
 # Dynamic Filter

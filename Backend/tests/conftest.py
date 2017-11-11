@@ -10,9 +10,11 @@ to allow easier assertion of status_codes and make json handling easier.
 """
 
 import json
+from contextlib import contextmanager
 
 import pytest
 
+from flask import g
 from flask.testing import FlaskClient
 from app import create_app
 
@@ -37,6 +39,15 @@ class TestClient(FlaskClient):
             # Set header
             kwargs['content_type'] = "application/json"
 
+        # Add Fake Header if specified in context
+        try:
+            auth = g.fake_token
+            kwargs.setdefault('headers', {})['Authorization'] = auth
+        except (RuntimeError, AttributeError):
+            # RuntimeError: No g, AttributeError: key in g is missing
+            pass  # No fake token to set
+
+        # Send the actual request
         response = super(TestClient, self).open(*args, **kwargs)
 
         if assert_status is not None:
@@ -54,6 +65,30 @@ def drop_database(application):
             database.drop_collection(collection)
 
 
+@contextmanager
+def user(self, **kwargs):
+    """Additional context to fake a user."""
+    with self.test_request_context():
+        g.user = 'Not None :)'
+        g.admin = False
+
+        # The test requests will use this header
+        g.fake_token = 'Token Trolololo'
+
+        # Allow to overwrite settings
+        for key, value in kwargs.items():
+            setattr(g, key, value)
+
+        yield
+
+
+@contextmanager
+def admin(self, **kwargs):
+    """Additional context to fake a user."""
+    with self.user(**kwargs):
+        g.admin = True
+        yield
+
 
 @pytest.fixture
 def app():
@@ -61,5 +96,10 @@ def app():
     application = create_app(settings=TEST_SETTINGS)
     application.test_client_class = TestClient
     application.client = application.test_client()
+
+    # Using __get__ binds the function to the application instance
+    application.user = user.__get__(application)
+    application.admin = admin.__get__(application)
+
     yield application
     drop_database(application)
