@@ -10,16 +10,15 @@ Next, you should check out the following files:
   The data model and `Eve` configuration.
 
 - `security.py`:
-  Authentication and Data Validation functions that are used in the model are
-  defined here. In particular, the interaction with AMIVAPI is handled here.
-
+  Authentication is defined here, in particular the interaction with AMIVAPI.
 """
 
 from os import getcwd
 from eve import Eve
 from flask import Config
 
-from security import APIAuth, APIValidator, only_own_signups
+from security import APIAuth, only_own_nethz
+from validation import APIValidator
 
 
 def create_app(settings=None):
@@ -38,9 +37,11 @@ def create_app(settings=None):
 
     # Eve provides hooks at several points of the request,
     # we use this do add dynamic filtering
-    for method in ['GET', 'PATCH', 'DELETE']:
-        event = getattr(application, 'on_pre_%s_signups' % method)
-        event += only_own_signups
+    for resource in ['signups', 'selections']:
+        for method in ['GET', 'PATCH', 'DELETE']:
+            event = getattr(application,
+                            'on_pre_%s_%s' % (method, resource))
+            event += only_own_nethz
 
     return application
 

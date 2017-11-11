@@ -3,7 +3,9 @@
 Check out [the Eve docs for configuration](http://python-eve.org/config.html)
 if you are unsure about some of the settings.
 
-Several validation rules are still missing, they are marked with TODO in the
+Our schema requires customized data validation. These validation rules are
+implemented in `validation.py`.
+Some validation rules are still missing, they are marked with TODO in the
 schema directly.
 """
 

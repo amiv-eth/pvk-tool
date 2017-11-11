@@ -15,19 +15,13 @@ The important bits are:
 
   Take a look at the [Eve docs](http://python-eve.org/authentication.html) for
   more info.
-
-- Additional Validation rules
-
-  More info [here](http://python-eve.org/validation.html).
-
 """
 
 from functools import wraps
 import json
 import requests
 from eve.auth import TokenAuth
-from eve.io.mongo import Validator
-from flask import request, g, current_app, abort
+from flask import g, current_app, abort
 
 
 # Requests to AMIVAPI
@@ -134,51 +128,11 @@ class APIAuth(TokenAuth):
             abort(403)
 
 
-# Dynamic Filter
+# Dynamic Visibility Filter
 
-def only_own_signups(_, lookup):
+def only_own_nethz(_, lookup):
     """Users can only see signups if their ID matches."""
     if not is_admin():
         # Add the additional lookup with an `$and` condition
         # or extend existing `$and`s
         lookup.setdefault('$and', []).append({'nethz': get_nethz()})
-
-
-# Validation
-
-class APIValidator(Validator):
-    """Provide a rule to check nethz of current user."""
-
-    def _validate_only_own_nethz(self, enabled, field, value):
-        """If the user is no admin, only own nethz is allowed for singup."""
-        if enabled and not is_admin():
-            if value != get_nethz():
-                self._error(field,
-                            "You can only use your own nethz to sign up.")
-
-    def _validate_unique_combination(self, unique_combination, field, value):
-        """Validate that a combination of fields is unique.
-
-        Code is copy-pasted from amivapi, see there for more explanation.
-        https://github.com/amiv-eth/amivapi/blob/master/amivapi/utils.py
-        """
-        lookup = {field: value}  # self
-        for other_field in unique_combination:
-            lookup[other_field] = self.document.get(other_field)
-
-        if request.method == 'PATCH':
-            original = self._original_document
-            for key in unique_combination:
-                if key not in self.document.keys():
-                    lookup[key] = original[key]
-
-        resource = self.resource
-        if current_app.data.find_one(resource, None, **lookup) is not None:
-            self._error(field, "value already exists in the database in " +
-                        "combination with values for: %s" %
-                        unique_combination)
-
-    def _validate_not_patchable(self, enabled, field, _):
-        """Inhibit patching of the field, also copied from AMIVAPI."""
-        if enabled and (request.method == 'PATCH'):
-            self._error(field, "this field can not be changed with PATCH")

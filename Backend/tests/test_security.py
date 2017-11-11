@@ -7,6 +7,7 @@ from flask import g
 
 ALL_RESOURCES = ['lectures', 'courses', 'signups', 'selections', 'payments']
 ADMIN_RESOURCES = ['lectures', 'courses']  # only admin can write
+PERSONAL_RESOURCES = ['signups', 'selections']  # users can only see their own
 
 
 @pytest.mark.parametrize('resource', ALL_RESOURCES)
@@ -123,22 +124,23 @@ def test_selection_for_own_nethz_only(app):
                         assert_status=201)
 
 
-def test_user_signup_visibility(app):
-    """Test that we a user cannot see others' signups."""
+@pytest.mark.parametrize('resource', PERSONAL_RESOURCES)
+def test_user_visibility(app, resource):
+    """Test that a user cannot see others' signups or selections."""
     nethz = 'Something'
     with app.user(nethz=nethz):
         # Create fake signup with different nethz
-        own = str(app.data.driver.db['signups'].insert({'nethz': nethz}))
-        other = str(app.data.driver.db['signups'].insert({'nethz': 'trolo'}))
+        own = str(app.data.driver.db[resource].insert({'nethz': nethz}))
+        other = str(app.data.driver.db[resource].insert({'nethz': 'trolo'}))
 
         # Resource: Can only see own, not both signups
-        response = app.client.get('/signups', assert_status=200)
+        response = app.client.get('/' + resource, assert_status=200)
         assert len(response['_items']) == 1
         assert response['_items'][0]['nethz'] == nethz
 
         # Items
-        own_url = '/signups/' + own
-        other_url = '/signups/' + other
+        own_url = '/%s/%s' % (resource, own)
+        other_url = '/%s/%s' % (resource, other)
 
         # Get
         app.client.get(own_url, assert_status=200)
@@ -153,22 +155,23 @@ def test_user_signup_visibility(app):
         app.client.delete(other_url, assert_status=404)
 
 
-def test_admin_signup_visibility(app):
-    """Test that we an admin can see others' signups."""
-    with app.admin():
+@pytest.mark.parametrize('resource', PERSONAL_RESOURCES)
+def test_admin_signup_visibility(app, resource):
+    """Test that we an admin can see others' signups and selections."""
+    with app.admin(nethz='somethingsomething'):
         headers = {'If-Match': 'Wrong'}
 
         # Create fake signup with different nethz
-        other = str(app.data.driver.db['signups'].insert({'nethz': 'trolo'}))
+        other = str(app.data.driver.db[resource].insert({'nethz': 'trolo'}))
 
         # Resource: Can see signups
-        response = app.client.get('/signups',
+        response = app.client.get('/' + resource,
                                   headers=headers,
                                   assert_status=200)
         assert len(response['_items']) == 1
 
         # Items
-        url = '/signups/' + other
+        url = '/%s/%s' % (resource, other)
 
         # Get
         app.client.get(url, headers=headers, assert_status=200)
