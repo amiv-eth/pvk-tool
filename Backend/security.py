@@ -47,7 +47,7 @@ def request_cache(key):
             try:
                 # If the value is already in g, don't call function
                 return getattr(g, key)
-            except KeyError:
+            except AttributeError:
                 setattr(g, key, function(*args, **kwargs))
                 return getattr(g, key)
         return _wrapper
@@ -118,11 +118,12 @@ class APIAuth(TokenAuth):
         if get_user() is None:
             return False
 
-        # Check Permissions, return 403 if not permitted
-        # Users: Read always allowed, write only on specific resources
-        # Admins: Can do all
-        user_writable = ['signups', 'selections', 'payments']
-        if (method == 'GET' or (resource in user_writable) or is_admin()):
+        # Check permitted methods for users, return 403 if not permitted
+        # Admins can do everything
+        domain = current_app.config['DOMAIN']
+        allowed_methods = domain[resource].get('user_methods', [])
+
+        if (method in allowed_methods or is_admin()):
             return True
         else:
             abort(403)

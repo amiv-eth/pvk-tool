@@ -54,7 +54,7 @@ class TestClient(FlaskClient):
             assert response.status_code == assert_status, \
                 response.get_data(as_text=True)
 
-        return json.loads(response.get_data(as_text=True))
+        return json.loads(response.get_data(as_text=True) or '{}')
 
 
 def drop_database(application):
@@ -70,6 +70,7 @@ def user(self, **kwargs):
     """Additional context to fake a user."""
     with self.test_request_context():
         g.user = 'Not None :)'
+        g.nethz = 'Something'
         g.admin = False
 
         # The test requests will use this header

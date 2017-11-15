@@ -23,6 +23,9 @@ MONGO_USERNAME = 'pvkuser'
 MONGO_PASSWORD = 'pvkpass'
 MONGO_DBNAME = 'pvk'
 
+# Only JSON, simplifies hooks
+XML = False
+
 
 RESOURCE_METHODS = ['GET', 'POST']
 ITEM_METHODS = ['GET', 'PATCH', 'DELETE']
@@ -30,6 +33,10 @@ ITEM_METHODS = ['GET', 'PATCH', 'DELETE']
 
 # ISO 8601 time format instead of rfc1123
 DATE_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
+
+
+# More Feedback when creating something: Return all fields
+BANDWIDTH_SAVER = False
 
 
 # A schema for required start/end time tuple
@@ -57,6 +64,9 @@ STANDARD_ERRORS = [400, 401, 403, 404, 405, 406, 409, 410, 412, 422, 428]
 # Resources
 DOMAIN = {
     'lectures': {
+
+        'user_methods': ['GET'],
+
         'schema': {
             'title': {
                 'type': 'string',
@@ -94,6 +104,9 @@ DOMAIN = {
     },
 
     'courses': {
+
+        'user_methods': ['GET'],
+
         'schema': {
             'lecture': {
                 'type': 'objectid',
@@ -137,6 +150,8 @@ DOMAIN = {
     'signups': {
         # Signup for a user to a course
 
+        'user_methods': ['GET', 'POST', 'PATCH', 'DELETE'],
+
         'schema': {
             'nethz': {
                 'type': 'string',
@@ -155,12 +170,14 @@ DOMAIN = {
                     'embeddable': True
                 },
                 'unique_combination': ['nethz'],
+                'required': True,
                 # TODO: No overlapping courses
             },
             'status': {
                 'type': 'string',
                 'allowed': ['waiting', 'reserved', 'accepted'],
                 'readonly': True,
+                'default': 'waiting',
             },
         },
     },
@@ -168,6 +185,8 @@ DOMAIN = {
     'selections': {
         # Easy way for users to safe their selections before signup is open
         # List of selected courses per user
+
+        'user_methods': ['GET', 'POST', 'PATCH', 'DELETE'],
 
         'schema': {
             'nethz': {
@@ -199,6 +218,9 @@ DOMAIN = {
         # Dummy endpoint for payments.
         # TODO: Implement as soon as PSP is known.
 
+        # Only admins can delete payments
+        'user_methods': ['GET', 'POST', 'PATCH'],
+
         'schema': {
             'signups': {
                 'type': 'list',
@@ -210,6 +232,7 @@ DOMAIN = {
                         'embeddable': True
                     },
                     # TODO: No duplicate entries
+                    # TODO: No courses on waiting list
                 },
                 'required': True,
                 'nullable': False,
