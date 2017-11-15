@@ -18,10 +18,10 @@ ADMIN_GROUP_NAME = 'PVK Admins'
 
 # DB
 MONGO_HOST = environ.get('MONGO_HOST', 'localhost')
-MONGO_PORT = 27017
-MONGO_USERNAME = 'pvkuser'
-MONGO_PASSWORD = 'pvkpass'
-MONGO_DBNAME = 'pvk'
+MONGO_PORT = environ.get('MONGO_PORT', 27017)
+MONGO_DBNAME = environ.get('MONGO_DBNAME', 'pvk')
+MONGO_USERNAME = environ.get('MONGO_USERNAME', 'pvkuser')
+MONGO_PASSWORD = environ.get('MONGO_PASSWORD', 'pvkpass')
 
 # Only JSON, simplifies hooks
 XML = False
@@ -98,7 +98,7 @@ DOMAIN = {
                     'nullable': False,
                 }
                 # TODO: Not the same nethz twice
-                # TODO: nethz is enough?
+                # TODO: Is nethz enough here?
             }
         },
     },
