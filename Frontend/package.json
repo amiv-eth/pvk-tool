@@ -7,7 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "webpack-dev-server --hot --inline",
     "build": "webpack -p --config webpack.config.prod.js",
-    "lint": "eslint src/**"
+    "server": "webpack-dev-server",
+    "lint": "eslint src/**",
+    "lint-fix": "eslint --fix src/**"
   },
   "author": "AMIV IT team",
   "dependencies": {
