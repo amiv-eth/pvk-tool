@@ -1,7 +1,11 @@
+/* eslint linebreak-style: ['error', 'windows'] */
+
+import PvkList from './PvkList';
+
 const m = require('mithril');
 
 module.exports = {
   view() {
-    return m('div', 'Hellooo!');
+    return m('div', [m(PvkList)]);
   },
 };
