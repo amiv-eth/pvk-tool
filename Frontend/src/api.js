@@ -1,3 +1,4 @@
+/* eslint linebreak-style: ['error', 'windows'] */
 // Api calls
 
 const m = require('mithril');
@@ -134,4 +135,5 @@ const Session = {
 
 module.exports = {
   Session,
+  apiUrl,
 };

@@ -1,11 +1,12 @@
+/* eslint linebreak-style: ['error', 'windows'] */
+
+
 const m = require('mithril');
 const { Session } = require('./api.js');
 
 const Layout = require('./Layout.js');
-
 const UserSidebar = require('./UserSidebar.js');
 const AdminSidebar = require('./AdminSidebar.js');
-
 const CourseList = require('./CourseList.js');
 const CourseOverview = require('./CourseOverview.js');
 

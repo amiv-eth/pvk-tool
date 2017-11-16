@@ -1,3 +1,4 @@
+/* eslint linebreak-style: ['error', 'windows'] */
 // Basic Layout with sidebar
 // Idea from https://mithril.js.org/simple-application.html
 //
