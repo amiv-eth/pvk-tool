@@ -211,12 +211,15 @@ def test_patch_signup_triggers_update(app, course, mock_update):
     fake = str(app.data.driver.db['signups'].insert({
         '_etag': 'tag',
         'nethz': 'lala',
+        'course': 'oldcourse'
     }))
     app.client.patch('/signups/' + fake,
                      data={'course': course},
                      headers={'If-Match': 'tag'},
                      assert_status=200)
-    mock_update.assert_called_with(course)
+
+    # Both the signups of the old and new course are updated
+    mock_update.assert_has_calls([call(course), call('oldcourse')])
 
 
 def test_delete_signup_triggers_update(app, course, mock_update):

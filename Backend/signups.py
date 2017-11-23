@@ -58,10 +58,12 @@ def deleted_signup(signup):
     update_signups(signup['course'])
 
 
-def patched_signup(update, _):
-    """Update status of new course."""
+def patched_signup(update, original):
+    """Update status of all signups of the original and new course."""
+    # Only need to do something if course is changed
     if 'course' in update:
         update_signups(str(update['course']))
+        update_signups(str(original['course']))
 
 
 def patched_course(update, original):
