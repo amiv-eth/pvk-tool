@@ -99,8 +99,8 @@ def app():
     application.client = application.test_client()
 
     # Using __get__ binds the function to the application instance
-    application.user = user.__get__(application)
-    application.admin = admin.__get__(application)
+    application.user = user.__get__(application)  # pylint: disable=E1121
+    application.admin = admin.__get__(application)  # pylint: disable=E1121
 
     yield application
     drop_database(application)

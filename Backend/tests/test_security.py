@@ -98,7 +98,7 @@ def test_signup_with_own_nethz_only(app):
                         assert_status=201)
 
 
-def test_selection_for_own_nethz_only(app):
+def test_selection_own_nethz(app):
     """Users can only select courses for themselves."""
     nethz = 'Something'
     with app.user(nethz=nethz):

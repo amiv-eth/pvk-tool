@@ -1,9 +1,14 @@
 """Test for signup processing, in particular waiting list."""
 
-from unittest.mock import patch, call
-import pytest
+# Some pylint config:
+# Because of fixtures we re-use the same name often
+# And some tests need long names to be descriptive
+# pylint: disable=redefined-outer-name, invalid-name
 
 from datetime import datetime as dt
+
+from unittest.mock import patch, call
+import pytest
 
 from signups import update_signups
 
@@ -99,12 +104,12 @@ def test_update_spots(app):
     """
     with app.admin():
         # Create a course with two spots
-        course = app.data.driver.db['courses'].insert({'spots': 2})
+        test_course = app.data.driver.db['courses'].insert({'spots': 2})
 
         # Create four signups on waiting list
         # 1. Oldest _created timestamp, but recently modified (recent _updated)
         first_data = {
-            'course': course,
+            'course': test_course,
             'status': 'waiting',
             '_created': dt(2020, 10, 10),
             '_updated': dt(2020, 10, 20),
@@ -113,7 +118,7 @@ def test_update_spots(app):
 
         # 3. oldest _updated
         second_data = {
-            'course': course,
+            'course': test_course,
             'status': 'waiting',
             '_created': dt(2020, 10, 11),
             '_updated': dt(2020, 10, 11),
@@ -122,7 +127,7 @@ def test_update_spots(app):
 
         # 3. earlier _created, second oldest _updated
         third_data = {
-            'course': course,
+            'course': test_course,
             'status': 'waiting',
             '_created': dt(2020, 10, 12),
             '_updated': dt(2020, 10, 15),
@@ -132,7 +137,7 @@ def test_update_spots(app):
 
         # 4. Same updated time as 3, but different id that will loose tie
         fourth_data = {
-            'course': course,
+            'course': test_course,
             'status': 'waiting',
             '_created': dt(2020, 10, 13),
             '_updated': dt(2020, 10, 15),
@@ -142,16 +147,16 @@ def test_update_spots(app):
 
         # Do the update!
         # We except 2 and 3 to get spots
-        update_signups(str(course))
+        update_signups(str(test_course))
 
-        def status(_id):
+        def _status(_id):
             return app.client.get('/signups/' + _id,
                                   assert_status=200)['status']
 
-        assert status(first_id) == 'waiting'
-        assert status(second_id) == 'reserved'
-        assert status(third_id) == 'reserved'
-        assert status(fourth_id) == 'waiting'
+        assert _status(first_id) == 'waiting'
+        assert _status(second_id) == 'reserved'
+        assert _status(third_id) == 'reserved'
+        assert _status(fourth_id) == 'waiting'
 
 
 @pytest.fixture
@@ -159,8 +164,8 @@ def course(app):
     """Create a fake course without any data for a test."""
     with app.admin():
         # Create a few courses to sign up to
-        db = app.data.driver.db['courses']
-        yield str(db.insert({'_etag': 'tag'}))
+        database = app.data.driver.db['courses']
+        yield str(database.insert({'_etag': 'tag'}))
 
 
 @pytest.fixture
