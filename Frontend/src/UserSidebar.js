@@ -1,4 +1,3 @@
-/* eslint linebreak-style: ['error', 'windows'] */
 // User Sidebar
 import Pvk from './Pvk';
 

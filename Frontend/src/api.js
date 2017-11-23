@@ -1,4 +1,3 @@
-/* eslint linebreak-style: ['error', 'windows'] */
 // Api calls
 
 const m = require('mithril');

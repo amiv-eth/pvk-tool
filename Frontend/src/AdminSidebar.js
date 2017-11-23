@@ -1,4 +1,3 @@
-/* eslint linebreak-style: ['error', 'windows'] */
 // Nothing yet
 
 const m = require('mithril');

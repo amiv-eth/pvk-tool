@@ -1,5 +1,3 @@
-/* eslint linebreak-style: ['error', 'windows'] */
-
 import PvkList from './PvkList';
 
 const m = require('mithril');

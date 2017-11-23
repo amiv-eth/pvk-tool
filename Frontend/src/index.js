@@ -1,6 +1,3 @@
-/* eslint linebreak-style: ['error', 'windows'] */
-
-
 const m = require('mithril');
 const { Session } = require('./api.js');
 

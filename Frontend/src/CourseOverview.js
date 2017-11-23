@@ -1,4 +1,3 @@
-/* eslint linebreak-style: ['error', 'windows'] */
 const m = require('mithril');
 
 module.exports = {
