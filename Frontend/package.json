@@ -5,9 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "webpack -d --watch",
+    "start": "webpack-dev-server --hot --inline",
     "build": "webpack -p --config webpack.config.prod.js",
-    "server": "webpack-dev-server --hot --inline",
     "lint": "eslint src/**"
   },
   "author": "AMIV IT team",
