@@ -1,4 +1,3 @@
-/* eslint linebreak-style: ['error', 'windows'] */
 var webpack = require('webpack');
 
 var config = {
