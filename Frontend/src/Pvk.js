@@ -13,7 +13,7 @@ class Pvk {
     m.request({
       method: 'GET',
       url: `${apiUrl}`,
-    }).then((data) => {
+    }).then(() => {
       this.list = [{
         lecture: {
           title: 'lecture1',
