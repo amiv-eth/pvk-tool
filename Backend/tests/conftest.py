@@ -13,7 +13,6 @@ import json
 
 import pytest
 
-from pymongo import MongoClient
 from flask.testing import FlaskClient
 from app import create_app
 
@@ -49,10 +48,11 @@ class TestClient(FlaskClient):
 
 def drop_database(application):
     """Drop drop drop!"""
-    connection = MongoClient(application.config['MONGO_HOST'],
-                             application.config['MONGO_PORT'])
-    connection.drop_database(application.config['MONGO_DBNAME'])
-    connection.close()
+    with application.app_context():
+        database = application.data.driver.db
+        for collection in database.collection_names():
+            database.drop_collection(collection)
+
 
 
 @pytest.fixture
