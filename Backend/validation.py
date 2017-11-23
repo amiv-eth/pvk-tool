@@ -47,7 +47,7 @@ class APIValidator(Validator):
                         "combination with values for: %s" %
                         unique_combination)
 
-    def _validate_not_patchable(self, enabled, field, value):
+    def _validate_not_patchable(self, enabled, field, _):
         """Inhibit patching of the field, also copied from AMIVAPI."""
         if enabled and (request.method == 'PATCH'):
             self._error(field, "this field can not be changed with PATCH")

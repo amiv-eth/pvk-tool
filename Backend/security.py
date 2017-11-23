@@ -123,7 +123,7 @@ class APIAuth(TokenAuth):
         domain = current_app.config['DOMAIN']
         allowed_methods = domain[resource].get('user_methods', [])
 
-        if (method in allowed_methods or is_admin()):
+        if method in allowed_methods or is_admin():
             return True
         else:
             abort(403)

@@ -96,7 +96,7 @@ DOMAIN = {
                     'maxlength': 10,
                     'empty': False,
                     'nullable': False,
-                }
+                },
                 # TODO: Not the same nethz twice
                 # TODO: Is nethz enough here?
             }
@@ -118,7 +118,7 @@ DOMAIN = {
                 'not_patchable': True,  # Course is tied to lecture
             },
             'assistant': {
-                'type': 'string'
+                'type': 'string',
                 # TODO: Assistant needs to exist for lecture
             },
 

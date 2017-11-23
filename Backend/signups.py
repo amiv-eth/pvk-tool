@@ -18,20 +18,20 @@ from eve.methods.get import getitem_internal
 from eve.methods.patch import patch_internal
 
 
-def wrap_response(f):
+def wrap_response(function):
     """Wrapper to modify payload for successful requests (status 2xx)."""
-    @wraps(f)
-    def wrapped(request, response):
+    @wraps(function)
+    def _wrapped(_, response):
         if response.status_code // 100 == 2:
             payload = json.loads(response.get_data(as_text=True))
 
             if '_items' in payload:
-                f(payload['_items'])
+                function(payload['_items'])
             else:
-                f([payload])
+                function([payload])
 
             response.set_data(json.dumps(payload))
-    return wrapped
+    return _wrapped
 
 
 @wrap_response
@@ -58,7 +58,7 @@ def deleted_signup(signup):
     update_signups(signup['course'])
 
 
-def patched_signup(update, original):
+def patched_signup(update, _):
     """Update status of new course."""
     if 'course' in update:
         update_signups(str(update['course']))
