@@ -4,12 +4,15 @@ Check out [the Eve docs for configuration](http://python-eve.org/config.html)
 if you are unsure about some of the settings.
 """
 
+from os import environ
+
+
 # AMIVAPI URL and Admin Group
 AMIVAPI_URL = "https://amiv-api.ethz.ch"
 ADMIN_GROUP_NAME = 'PVK Admins'
 
 # DB
-MONGO_HOST = 'localhost'
+MONGO_HOST = environ.get('MONGO_HOST', 'localhost')
 MONGO_PORT = 27017
 MONGO_USERNAME = 'pvkuser'
 MONGO_PASSWORD = 'pvkpass'

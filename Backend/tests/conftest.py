@@ -19,8 +19,6 @@ from app import create_app
 
 
 TEST_SETTINGS = {
-    'MONGO_HOST': 'localhost',
-    'MONGO_PORT': 27017,
     'MONGO_DBNAME': 'pvk_test',
     'MONGO_USERNAME': 'pvk_user',
     'MONGO_PASSWORD': 'pvk_pass',
