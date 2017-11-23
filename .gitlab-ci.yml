@@ -1,17 +1,32 @@
-image: node:latest
-
-stages:
-  - lint
-
-before_script:
-  - cd ./Frontend/
-  - npm install
-  - cd ../
-
 frontend_eslint:
-  stage: lint
+  image: node:latest
+  before_script:
+   - cd ./Frontend
+   - npm install
+   - cd ..
+
   when: always
   script:
-    - cd ./Frontend/
+    - cd ./Frontend
     - npm run lint
-    - cd ../
+    - cd ..
+
+backend:
+  image: python:alpine
+  services:
+    - name: bitnami/mongodb:latest
+      alias: mongo
+
+  variables:
+    MONGO_HOST: mongo
+    MONGODB_DATABASE: pvk_test
+    MONGODB_USERNAME: pvk_user
+    MONGODB_PASSWORD: pvk_pass
+
+  before_script:
+   - pip install tox
+  script:
+    - cd ./Backend
+    - tox
+    - cd ..
+
