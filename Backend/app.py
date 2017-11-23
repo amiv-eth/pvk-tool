@@ -45,4 +45,4 @@ def create_app(settings=None):
     return application
 
 
-app = create_app()
+app = create_app()  # pylint: disable=C0103

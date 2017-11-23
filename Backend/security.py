@@ -40,24 +40,24 @@ def api_get(resource, where, projection):
         'where': json.dumps(where),
         'projection': json.dumps(projection)
     }
-    response = requests(url, params=params, headers=headers)
+    response = requests.get(url, params=params, headers=headers)
     if response.status_code == 200:
         return response.json()
 
 
 def request_cache(key):
     """Use as decorator: Cache the function return in g.key."""
-    def decorator(f):
-        @wraps(f)
-        def wrapper(*args, **kwargs):
+    def _decorator(function):
+        @wraps(function)
+        def _wrapper(*args, **kwargs):
             try:
                 # If the value is already in g, don't call function
                 return getattr(g, key)
             except KeyError:
-                setattr(g, key, f(*args, **kwargs))
+                setattr(g, key, function(*args, **kwargs))
                 return getattr(g, key)
-        return wrapper
-    return decorator
+        return _wrapper
+    return _decorator
 
 
 @request_cache('user')
@@ -96,7 +96,7 @@ def is_admin():
                                  {'user': user_id, 'group': group_id},
                                  {'_id': 1})
 
-            return bool(membership and len(membership['_items']) != 0)
+            return bool(membership and membership['_items'])
 
     # In all other cases, user is not an admin.
     return False
@@ -126,7 +126,7 @@ class APIAuth(TokenAuth):
 
 # Dynamic Filter
 
-def only_own_signups(request, lookup):
+def only_own_signups(_, lookup):
     """Users can only see signups if their ID matches."""
     if not is_admin():
         # Add the additional lookup with an `$and` condition
@@ -168,7 +168,7 @@ class APIValidator(Validator):
                         "combination with values for: %s" %
                         unique_combination)
 
-    def _validate_not_patchable(self, enabled, field, value):
+    def _validate_not_patchable(self, enabled, field, _):
         """Inhibit patching of the field, also copied from AMIVAPI."""
         if enabled and (request.method == 'PATCH'):
             self._error(field, "this field can not be changed with PATCH")

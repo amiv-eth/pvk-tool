@@ -30,8 +30,10 @@ TEST_SETTINGS = {
 class TestClient(FlaskClient):
     """Custom test client for easier json handling."""
 
-    def open(self, *args, assert_status=None, **kwargs):
+    def open(self, *args, **kwargs):
         """Built-in status_code assertion and send/return json."""
+        assert_status = kwargs.pop('assert_status', None)
+
         if "data" in kwargs:
             # Parse data
             kwargs['data'] = json.dumps(kwargs['data'])
