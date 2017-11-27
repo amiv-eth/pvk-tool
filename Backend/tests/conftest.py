@@ -70,7 +70,7 @@ def drop_database(application):
 def user(self, **kwargs):
     """Additional context to fake a user."""
     with self.test_request_context():
-        g.user = 'Not None :)'
+        g.apiuser = 'Not None :)'
         g.nethz = 'Something'
         g.admin = False
 

@@ -2,8 +2,6 @@
 
 import pytest
 
-from flask import g
-
 
 ALL_RESOURCES = ['lectures', 'courses', 'signups', 'selections', 'payments']
 ADMIN_RESOURCES = ['lectures', 'courses']  # only admin can write
@@ -37,18 +35,13 @@ def test_user_can_read(app, resource):
     Not signups! There, users can only see their own items -> extra test
     This implies that admins can read, too, since every admin is a user.
     """
-    with app.test_request_context():
-        # Fake a user
-        g.user = 'Not None :)'
-        faketoken = {'Authorization': 'Token Trolololo'}
-
+    with app.user():
         # Read resource
-        app.client.get('/' + resource, headers=faketoken, assert_status=200)
+        app.client.get('/' + resource, assert_status=200)
 
         # Create fake item and read item
         _id = app.data.driver.db[resource].insert({})
         app.client.get('/%s/%s' % (resource, _id),
-                       headers=faketoken,
                        assert_status=200)
 
 

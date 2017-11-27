@@ -37,22 +37,21 @@ connection.close()
 def post(resource, data):
     """Create something, ignoring auth."""
     with APP.test_request_context():
-        g.user = 'Not None :)'
+        g.apiuser = 'Not None :)'
         g.nethz = 'Something'
         g.admin = True
 
-        response = CLIENT.post(resource,
+        response = CLIENT.post('%s/%s' % (APP.config['URL_PREFIX'], resource),
                                data=json.dumps(data),
                                content_type="application/json",
                                headers={'Authorization': 'Token Lala'})
 
         if response.status_code != 201:
-            """
             error = json.loads(response.get_data(as_text=True))
             status = error['_error']['code']
-            issues = str(error['_issues'])
-            print('Warning(%s):' % status, issues)
-            """
+            message = str(error['_error'].get('message', ''))
+            issues = str(error.get('_issues', ''))
+            print('%s:' % status, issues or message)
             return {}
 
         return json.loads(response.get_data(as_text=True))

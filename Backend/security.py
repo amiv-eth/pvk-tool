@@ -64,8 +64,6 @@ def get_user():
     if response:
         print('Resp', response['_items'][0])
         return response['_items'][0]['user']
-    else:
-        raise FileNotFoundError
 
 
 @request_cache('nethz')
