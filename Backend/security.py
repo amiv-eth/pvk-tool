@@ -18,6 +18,7 @@ The important bits are:
 """
 
 from functools import wraps
+import json
 import requests
 from eve.auth import TokenAuth
 from flask import g, current_app, abort
@@ -30,7 +31,9 @@ def api_get(endpoint, **params):
     url = requests.compat.urljoin(current_app.config['AMIVAPI_URL'], endpoint)
     headers = {'Authorization': "Token %s" % g.token}
 
-    response = requests.get(url, params=params, headers=headers)
+    formatted = {key: json.dumps(value) for (key, value) in params.items()}
+
+    response = requests.get(url, params=formatted, headers=headers)
     if response.status_code == 200:
         return response.json()
 
@@ -42,7 +45,6 @@ def request_cache(key):
         def _wrapper(*args, **kwargs):
             try:
                 # If the value is already in g, don't call function
-                print(key, getattr(g, key))
                 return getattr(g, key)
             except AttributeError:
                 setattr(g, key, function(*args, **kwargs))
@@ -51,7 +53,7 @@ def request_cache(key):
     return _decorator
 
 
-@request_cache('user')
+@request_cache('apiuser')
 def get_user():
     """Return user id if the token is valid, None otherwise."""
     response = api_get(
@@ -60,14 +62,18 @@ def get_user():
         projection={'user': 1}
     )
     if response:
+        print('Resp', response['_items'][0])
         return response['_items'][0]['user']
+    else:
+        raise FileNotFoundError
 
 
 @request_cache('nethz')
 def get_nethz():
     """Return nethz of current user."""
     if get_user() is not None:
-        response = api_get('users', projection={'nethz': 1})
+        response = api_get('users/' + get_user())
+        print('users/' + get_user(), response)
         return response.get('nethz')
 
 
@@ -86,8 +92,7 @@ def is_admin():
             where={'name': current_app.config['ADMIN_GROUP_NAME']},
             projection={'_id': 1}
         )
-        if groups:
-            print(groups)
+        if groups and groups['_items']:
             group_id = groups['_items'][0]['_id']
 
             membership = api_get(
