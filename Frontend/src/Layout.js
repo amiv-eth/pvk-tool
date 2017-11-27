@@ -80,7 +80,8 @@ const LoginPage = {
 const SidebarHeader = {
   view() {
     return [
-      m('h1', 'PVK Tool Demo'),
+      m('header', m('img', { src: '/home/alex/contractor/contractor/static/logo.svg' })),
+      // m('h1', 'PVK Tool Demo'),
       m('p', `Hello, ${Session.user.name}`),
       m('button', { onclick: logout }, 'Logout'),
       Session.admin ? [

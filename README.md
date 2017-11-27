@@ -41,6 +41,7 @@ frontend development. Here's how:
      -e MONGO_HOST="mongodb" \
      pvk
    ```
+
    The `--link` and `-e` make sure the backend can access the db container.
 
 And now the backend is available at port 80, ready to use!

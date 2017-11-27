@@ -1,5 +1,4 @@
 import m from 'mithril';
-import { apiUrl } from './api';
 
 class Pvk {
   constructor() {
@@ -11,7 +10,7 @@ class Pvk {
     // request is needed to force mithrijs to update shared objects
     m.request({
       method: 'GET',
-      url: `${apiUrl}`,
+      // url: `${apiUrl}`,
     }).then(() => {
       this.list = [{
         lecture: {

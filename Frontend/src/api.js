@@ -3,11 +3,15 @@
 const m = require('mithril');
 const ls = require('local-storage');
 
-const apiUrl = 'https://amiv-api.ethz.ch';
+const amivApiUrl = 'https://amiv-api.ethz.ch';
+const pvkApiUrl = `//${window.location.hostname}/api`;
+
 const adminGroupName = 'PVK Admins';
 
 const storedSession = ls('session');
 
+
+// Session with AMIVAPI
 const Session = {
   // Quick check if session exists
   active() { return this.data.token; },
@@ -43,7 +47,7 @@ const Session = {
     // Login and request user data along with the session
     return m.request({
       method: 'POST',
-      url: `${apiUrl}/sessions?embedded={"user": 1}`,
+      url: `${amivApiUrl}/sessions?embedded={"user": 1}`,
       data: { username, password },
     }).then((data) => {
       // Session data
@@ -71,7 +75,7 @@ const Session = {
     if (this.data.token) {
       return m.request({
         method: 'DELETE',
-        url: `${apiUrl}/sessions/${this.data._id}`,
+        url: `${amivApiUrl}/sessions/${this.data._id}`,
         headers: {
           Authorization: `Token ${this.data.token}`,
           'If-Match': this.data._etag,
@@ -83,7 +87,7 @@ const Session = {
           // Token already no valid anymore, clear session
           this.clear();
         } else {
-          throw err;
+          throw err._error;
         }
       });
     }
@@ -99,7 +103,7 @@ const Session = {
     });
     m.request({
       method: 'GET',
-      url: `${apiUrl}/groups?${query}`,
+      url: `${amivApiUrl}/groups?${query}`,
       headers: { Authorization: `Token ${token}` },
     }).then((data) => {
       if (data._meta.total !== 0) {
@@ -112,7 +116,7 @@ const Session = {
         });
         return m.request({
           method: 'GET',
-          url: `${apiUrl}/groupmemberships?${query}`,
+          url: `${amivApiUrl}/groupmemberships?${query}`,
           headers: { Authorization: `Token ${token}` },
         });
       }
@@ -132,7 +136,95 @@ const Session = {
   },
 };
 
+
+// Request to the PVK backend
+function request({
+  resource, method = 'GET', id = '', data = {}, query = {},
+}) {
+  // Parse query such that the backend understands it
+  const parsedQuery = {};
+  Object.keys(query).forEach((key) => {
+    parsedQuery[key] = JSON.stringify(query[key]);
+  });
+  const queryString = m.buildQueryString(parsedQuery);
+
+  // Send the request
+  return m.request({
+    method,
+    data,
+    url: `${pvkApiUrl}/${resource}/${id}?${queryString}`,
+    headers: { Authorization: `Token ${Session.data.token}` },
+  }).catch((err) => {
+    // If the error is 401, the token is invalid -> auto log out
+    if (err._error.code === 401) { Session.clear(); }
+
+    // Actual error information is in the '_error' field, pass this on
+    throw err._error;
+  });
+}
+
+
+// Generic PVK resource
+class Resource {
+  constructor(name, query = {}) {
+    this.name = name;
+    this.list = [];
+    this.query = query;
+  }
+
+  load() {
+    return request({ resource: this.name, query: this.query }).then((data) => {
+      // Fill own list
+      this.list = data._items;
+      // Pass on data
+      return data;
+    });
+  }
+}
+
+
+const UserCourses = {
+  resources: {
+    selections: new Resource(
+      'selections',
+      { where: { nethz: Session.user.nethz } },
+    ),
+    signups: new Resource(
+      'signups',
+      { where: { nethz: Session.user.nethz } },
+    ),
+  },
+
+  load() {
+    this.resources.selections.load().then(() => {
+      // We are only interested in one the first (and single) element
+      this.resources.selections.list = this.resources.selections.list[0] || [];
+    });
+    this.resources.signups.load();
+  },
+
+  get selected() { return this.resources.selections.list; },
+  get reserved() {
+    return this.resources.signups.list.filter(({ status }) =>
+      status === 'reserved');
+  },
+  get accepted() {
+    return this.resources.signups.list.filter(({ status }) =>
+      status === 'accepted');
+  },
+
+  // TODO(Alex)
+  select() {},
+  reserve() {},
+  pay() {},
+};
+
+const Courses = new Resource('courses', { embedded: { lecture: 1 } });
+
+
 module.exports = {
   Session,
-  apiUrl,
+  request,
+  UserCourses,
+  Courses,
 };
