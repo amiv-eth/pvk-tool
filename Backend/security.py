@@ -18,7 +18,6 @@ The important bits are:
 """
 
 from functools import wraps
-import json
 import requests
 from eve.auth import TokenAuth
 from flask import g, current_app, abort
@@ -26,14 +25,11 @@ from flask import g, current_app, abort
 
 # Requests to AMIVAPI
 
-def api_get(resource, where, projection):
+def api_get(endpoint, **params):
     """Format and send a GET request to AMIVAPI. Return json data or None."""
-    url = requests.compat.urljoin(current_app.config['AMIVAPI_URL'], resource)
+    url = requests.compat.urljoin(current_app.config['AMIVAPI_URL'], endpoint)
     headers = {'Authorization': "Token %s" % g.token}
-    params = {
-        'where': json.dumps(where),
-        'projection': json.dumps(projection)
-    }
+
     response = requests.get(url, params=params, headers=headers)
     if response.status_code == 200:
         return response.json()
@@ -46,6 +42,7 @@ def request_cache(key):
         def _wrapper(*args, **kwargs):
             try:
                 # If the value is already in g, don't call function
+                print(key, getattr(g, key))
                 return getattr(g, key)
             except AttributeError:
                 setattr(g, key, function(*args, **kwargs))
@@ -57,7 +54,11 @@ def request_cache(key):
 @request_cache('user')
 def get_user():
     """Return user id if the token is valid, None otherwise."""
-    response = api_get('sessions', {'token': g.get('token', '')}, {'user': 1})
+    response = api_get(
+        'sessions',
+        where={'token': g.get('token', '')},
+        projection={'user': 1}
+    )
     if response:
         return response['_items'][0]['user']
 
@@ -66,7 +67,7 @@ def get_user():
 def get_nethz():
     """Return nethz of current user."""
     if get_user() is not None:
-        response = api_get('users/%s' % get_user(), {}, {'nethz': 1})
+        response = api_get('users', projection={'nethz': 1})
         return response.get('nethz')
 
 
@@ -80,15 +81,20 @@ def is_admin():
     user_id = get_user()
     if user_id is not None:
         # Find Group with correct name, return list of members
-        groups = api_get('groups',
-                         {'name': current_app.config['ADMIN_GROUP_NAME']},
-                         {'_id': 1})
+        groups = api_get(
+            'groups',
+            where={'name': current_app.config['ADMIN_GROUP_NAME']},
+            projection={'_id': 1}
+        )
         if groups:
+            print(groups)
             group_id = groups['_items'][0]['_id']
 
-            membership = api_get('groupmemberships',
-                                 {'user': user_id, 'group': group_id},
-                                 {'_id': 1})
+            membership = api_get(
+                'groupmemberships',
+                where={'user': user_id, 'group': group_id},
+                projection={'_id': 1}
+            )
 
             return bool(membership and membership['_items'])
 

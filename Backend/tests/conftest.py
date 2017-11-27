@@ -20,6 +20,7 @@ from app import create_app
 
 
 TEST_SETTINGS = {
+    'URL_PREFIX': '',  # remove prefix to avoid typing /api/ everywhere
     'MONGO_DBNAME': 'pvk_test',
     'MONGO_USERNAME': 'pvk_user',
     'MONGO_PASSWORD': 'pvk_pass',
