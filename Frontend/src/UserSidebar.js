@@ -1,6 +1,6 @@
 // User Sidebar
 const m = require('mithril');
-const { userCourses } = require('./api.js');
+const { userCourses } = require('./backend.js');
 
 function courseView(course) {
   return m('li', course);

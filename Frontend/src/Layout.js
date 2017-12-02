@@ -4,7 +4,7 @@
 // Includes the generic login / logout
 
 const m = require('mithril');
-const { Session } = require('./api.js');
+const session = require('./session.js');
 
 let nethz = '';
 let password = '';
@@ -15,7 +15,7 @@ let busy = false;
 function login() {
   if (!busy && nethz && password) {
     busy = true;
-    Session.login(nethz, password).then(() => {
+    session.login(nethz, password).then(() => {
       nethz = '';
       password = '';
       error = '';
@@ -29,7 +29,7 @@ function login() {
 
 function logout() {
   busy = true;
-  Session.logout().then(() => {
+  session.logout().then(() => {
     busy = false;
     error = '';
   }).catch((err) => {
@@ -82,9 +82,9 @@ const SidebarHeader = {
     return [
       m('header', m('img', { src: '/home/alex/contractor/contractor/static/logo.svg' })),
       // m('h1', 'PVK Tool Demo'),
-      m('p', `Hello, ${Session.user.name}`),
+      m('p', `Hello, ${session.user.name}`),
       m('button', { onclick: logout }, 'Logout'),
-      Session.admin ? [
+      session.admin ? [
         m('br'),
         m('a', { href: '/course', oncreate: m.route.link }, 'User Tools'),
         m('br'),
@@ -97,7 +97,7 @@ const SidebarHeader = {
 
 module.exports = {
   view(vnode) {
-    return Session.active() ? m('', [
+    return session.active() ? m('', [
       m('aside', [m(SidebarHeader), m(vnode.attrs.sidebar)]),
       m('main', m(vnode.attrs.content)),
     ]) : m(LoginPage);

@@ -1,5 +1,5 @@
 const m = require('mithril');
-const { Session } = require('./api.js');
+const session = require('./session.js');
 
 const Layout = require('./Layout.js');
 const UserSidebar = require('./UserSidebar.js');
@@ -20,7 +20,7 @@ m.route(document.body, '/courses', {
   '/admin': {
     render() {
       // If not admin, redirect to Courses
-      if (!Session.admin) { m.route.set('/course'); }
+      if (!session.admin) { m.route.set('/course'); }
       return m(Layout, {
         sidebar: AdminSidebar,
         content: CourseOverview,

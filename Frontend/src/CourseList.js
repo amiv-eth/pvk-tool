@@ -1,11 +1,11 @@
 const m = require('mithril');
-const { courses, userCourses } = require('./api.js');
+const { courses, userCourses } = require('./backend.js');
 
 function isSelected(course) {
   return userCourses.selected.some(sel => sel === course._id);
 }
 
-function isBusy() { return userCourses.resources.selections.isBusy() };
+function isBusy() { return userCourses.resources.selections.isBusy(); }
 
 module.exports = {
   oninit() { courses.get(); },
