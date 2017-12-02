@@ -1,33 +1,44 @@
 // User Sidebar
 const m = require('mithril');
-const { UserCourses } = require('./api.js');
+const { userCourses } = require('./api.js');
 
 function courseView(course) {
-  return m('li', `${course.lecture.title}, ${course.assistant}`);
+  return m('li', course);
 }
 
 function asList(courses) { return courses.map(courseView); }
 
 module.exports = {
-  oninit() { UserCourses.load(); },
+  oninit() { userCourses.get(); },
 
   view() {
     return [
       m('h1', 'Selected Courses'),
-      UserCourses.selected.length ? [
-        asList(UserCourses.selected),
-        m('button', { onclick() { UserCourses.reserve(); } }, 'reserve'),
+      userCourses.selected.length ? [
+        userCourses.selected.map(selId =>
+          m('li', [
+            m('span', selId),
+            m(
+              'button',
+              {
+                onclick() { userCourses.deselectCourse(selId); },
+                disabled: userCourses.resources.selections.isBusy(),
+              },
+              'X',
+            ),
+          ])),
+        m('button', { onclick() { userCourses.reserve(); } }, 'reserve'),
       ] : m('p', 'No courses selected.'),
 
       m('h1', 'Reserved Courses'),
-      UserCourses.reserved.length ? [
-        asList(UserCourses.reserved),
-        m('button', { onclick() { UserCourses.pay(); } }, 'Pay'),
+      userCourses.reserved.length ? [
+        asList(userCourses.reserved),
+        m('button', { onclick() { userCourses.pay(); } }, 'Pay'),
       ] : m('p', 'No courses reserved.'),
 
       m('h1', 'Accepted Courses'),
-      UserCourses.accepted.length ? [
-        asList(UserCourses.accepted),
+      userCourses.accepted.length ? [
+        asList(userCourses.accepted),
       ] : m('p', 'No courses accepted.'),
     ];
   },
