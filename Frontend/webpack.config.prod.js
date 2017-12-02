@@ -1,52 +1,24 @@
-var webpack = require('webpack');
-var CompressionPlugin = require('compression-webpack-plugin');
+const webpack = require('webpack');
+const CompressionPlugin = require('compression-webpack-plugin');
 
-var config = {
-    context: __dirname + '/src', // `__dirname` is root of project and `src` is source
+// Start with dev config
+const config = require('./webpack.config.js');
 
-    entry: './index.js',
+// Remove development server and code map
+config.devServer = undefined;
+config.devtool = '';
 
-    output: {
-        path: __dirname + '/dist', // `dist` is the destination
-        filename: 'bundle.js'
-    },
-
-    //To run development server
-    devServer: {
-        contentBase: __dirname,
-        publicPath: '/dist',
-        compress: true,
-        port: 9000,
-        hot: true,
-        index: "index.html"
-    },
-
-    module: {
-        rules: [
-            {
-                test: /\.js$/, // Check for all js files
-                exclude: /node_modules/,
-                use: [{
-                    loader: 'babel-loader',
-                    options: { presets: ['env'] }
-                }]
-            }
-        ]
-    },
-
-    plugins: [
-        new webpack.optimize.UglifyJsPlugin(),
-        new webpack.optimize.AggressiveMergingPlugin(),
-        new CompressionPlugin({
-            asset: "[path].gz[query]",
-            algorithm: "gzip",
-            test: /\.js$|\.css$|\.html$/,
-            threshold: 10240,
-            minRatio: 0.8
-        })
-    ],
-
-    devtool: "" // No source map for production build
-};
+// Add optimization plugins
+config.plugins = [
+  new webpack.optimize.UglifyJsPlugin(),
+  new webpack.optimize.AggressiveMergingPlugin(),
+  new CompressionPlugin({
+    asset: '[path].gz[query]',
+    algorithm: 'gzip',
+    test: /\.js$|\.css$|\.html$/,
+    threshold: 10240,
+    minRatio: 0.8,
+  }),
+];
 
 module.exports = config;
