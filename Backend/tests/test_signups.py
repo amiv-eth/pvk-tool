@@ -46,7 +46,7 @@ def test_success(app):
 
 
 def test_zero_spots(app):
-    """Settings spots to zero will just put everyone on the waiting list."""
+    """Setting spots to zero will just put everyone on the waiting list."""
     with app.admin():
         # Create fake courses to sign up to
         course_id = str(app.data.driver.db['courses'].insert({'spots': 0}))
