@@ -99,7 +99,7 @@ def test_not_enough_spots(app):
 def test_update_spots(app):
     """Test the main update function.
 
-    As a key for sorting the _updated timestamp will be used, with
+    As a key for sorting, the _updated timestamp will be used, with
     nethz as a tie breaker
     """
     with app.admin():
