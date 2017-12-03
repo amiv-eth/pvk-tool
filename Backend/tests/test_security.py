@@ -101,7 +101,7 @@ def test_selection_own_nethz(app):
         # Try with other nethz
         bad_selection = {
             'nethz': 'Notthenethz',
-            'courses': [course],
+            'course': course,
         }
         app.client.post('/selections',
                         data=bad_selection,
@@ -110,7 +110,7 @@ def test_selection_own_nethz(app):
         # Try with own nethz
         good_selection = {
             'nethz': nethz,
-            'courses': [course],
+            'course': course,
         }
         app.client.post('/selections',
                         data=good_selection,

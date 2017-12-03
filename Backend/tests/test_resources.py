@@ -37,7 +37,7 @@ def test_create(app):
 
         selection = {
             'nethz': 'Pablito',
-            'courses': [course_response['_id']]
+            'course': course_response['_id']
         }
         app.client.post('selections', data=selection, assert_status=201)
 

@@ -190,7 +190,7 @@ DOMAIN = {
 
     'selections': {
         # Easy way for users to safe their selections before signup is open
-        # List of selected courses per user
+        # exactly like singups, but without status
 
         'user_methods': ['GET', 'POST', 'PATCH', 'DELETE'],
 
@@ -202,20 +202,18 @@ DOMAIN = {
                 'nullable': False,
                 'required': True,
                 'only_own_nethz': True,
-                'unique': True,
+                'not_patchable': True,  # Signup is tied to user
             },
-            'courses': {
-                'type': 'list',
-                'schema': {
-                    'type': 'objectid',
-                    'data_relation': {
-                        'resource': 'courses',
-                        'field': '_id',
-                        'embeddable': True
-                    },
-                    # TODO: No duplicate entries
-                    # TODO: No entries that are already reserved
+            'course': {
+                'type': 'objectid',
+                'data_relation': {
+                    'resource': 'courses',
+                    'field': '_id',
+                    'embeddable': True
                 },
+                'unique_combination': ['nethz'],
+                'required': True,
+                # TODO: No overlapping courses
             },
         },
     },
