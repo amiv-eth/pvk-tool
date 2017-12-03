@@ -6,17 +6,17 @@ const { lectures } = require('./backend.js');
 
 const currentLecture = {
   title: 'Hallo',
-  department: 'Alex',
-  year: '42',
-  assistant: ['rcelina', 'rstadler', 'troll'],
+  department: 'itet',
+  year: '2',
+  assistants: ['rcelina', 'rstadler', 'troll'],
 };
 
-function addAssistant() {
-  currentLecture.assistant.push('');
+function addAssistants() {
+  currentLecture.assistants.push('');
 }
 
-function removeAssistant(index) {
-  currentLecture.assistant.splice(index, 1);
+function removeAssistants(index) {
+  currentLecture.assistants.splice(index, 1);
 }
 
 function bind(obj, prop) {
@@ -45,28 +45,28 @@ const enterField = {
       m('input', bind(currentLecture, 'department')),
       m('div', 'Year: '),
       m('input', bind(currentLecture, 'year')),
-      m('div', 'Assistant: '),
-      currentLecture.assistant.map((_, index) => [
+      m('div', 'Assistants: '),
+      currentLecture.assistants.map((_, index) => [
         m('div', [
           m(
             'input',
-            bind(currentLecture.assistant, index),
+            bind(currentLecture.assistants, index),
           ),
           m(
             'button',
             {
               onclick() {
-                removeAssistant(index);
+                removeAssistants(index);
               },
             },
-            'Remove Assistant',
+            'Remove Assistants',
           ),
         ]),
       ]),
       m(
         'button',
-        { onclick: addAssistant },
-        'Add Assistant',
+        { onclick: addAssistants },
+        'Add Assistants',
       ),
     ];
   },
@@ -101,8 +101,17 @@ module.exports = {
         { onclick: createLecture },
         'Create Lecture',
       ),
-      m('div', lectures.list.map(({ title }) =>
-        m('div', title))),
+      m('div', lectures.list.map(({ title, _id }) => [
+        m(
+          'div',
+          title,
+          m(
+            'button',
+            { onclick() { lectures.deleteItem(_id); } },
+            'Delete',
+          ),
+        ),
+      ])),
     ];
   },
 };
