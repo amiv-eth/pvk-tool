@@ -96,7 +96,7 @@ def is_admin():
             membership = api_get(
                 'groupmemberships',
                 where={'user': user_id, 'group': group_id},
-                projection={'_id': 1}
+                # projection={'_id': 1}
             )
 
             return bool(membership and membership['_items'])
