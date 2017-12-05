@@ -15,12 +15,14 @@ from signups import update_signups
 
 def test_success(app):
     """If there are enough spots, the status will be 'reserved'."""
-    with app.admin():  # Admin so we don't need to care about nethz
-        # Create fake courses to sign up to
+    # Create fake courses to sign up to
+    with app.admin():
         course_id = str(app.data.driver.db['courses'].insert({'spots': 10}))
 
+    # Sign up as user
+    with app.user(nethz='nethz'):
         signup = {
-            'nethz': 'Something',
+            'nethz': 'nethz',
             'course': course_id,
         }
 
@@ -94,6 +96,35 @@ def test_not_enough_spots(app):
         print(second_response['_updated'])
 
         assert second_response['status'] == 'waiting'
+
+
+def test_course_independence(app):
+    """Test that signups of one course don't influence another.
+
+    There was a bug in the code that lead to counting any signup for any
+    course. This test should ensure it doesn't happen again.
+    """
+    with app.admin():
+        # Course with a free spot
+        main_course = app.data.driver.db['courses'].insert({'spots': 1})
+
+        # Other course that will get signups
+        other_course = app.data.driver.db['courses'].insert({'spots': 5})
+        for _ in range(5):
+            app.data.driver.db['signups'].insert({'course': other_course})
+
+        # Sign up to course
+        signup = {
+            'nethz': 'Something',
+            'course': str(main_course),
+        }
+
+        response = app.client.post('/signups',
+                                   data=signup,
+                                   assert_status=201)
+
+        # The other signups should have no influence
+        assert response['status'] == 'reserved'
 
 
 def test_update_spots(app):

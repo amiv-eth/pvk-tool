@@ -13,6 +13,7 @@ import json
 from functools import wraps
 from itertools import chain
 
+from bson import ObjectId
 from flask import current_app, abort
 from eve.methods.get import getitem_internal
 from eve.methods.patch import patch_internal
@@ -94,7 +95,10 @@ def update_signups(course):
 
     # Next, count current signups not on waiting list
     collection = current_app.data.driver.db['signups']
-    taken_spots = collection.count({'status': {'$ne': 'waiting'}})
+    taken_spots = collection.count({
+        'course': ObjectId(str(course)),
+        'status': {'$ne': 'waiting'}
+    })
 
     available_spots = total_spots - taken_spots
 
@@ -108,17 +112,12 @@ def update_signups(course):
                               sort=[('_updated', 1), ('nethz', 1)],
                               limit=available_spots)
 
-    signups_to_update = [str(item['_id']) for item in signups
-                         if item['status'] == 'waiting']
+    signup_ids = [item['_id'] for item in signups]
 
-    for signup_id in signups_to_update:
-        patch_internal('signups',
-                       _id=signup_id,
-                       payload={'status': 'reserved'},
-                       concurrency_check=False,
-                       skip_validation=True)
+    collection.update_many({'_id': {'$in': signup_ids}},
+                           {'$set': {'status': 'reserved'}})
 
-    return signups_to_update
+    return [str(item) for item in signup_ids]
 
 
 def mark_as_paid(payments):
