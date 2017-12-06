@@ -37,11 +37,15 @@ def wrap_response(function):
 @wrap_response
 def new_signups(signups):
     """Update the status for all signups to a course."""
-    # Remove duplicates by using a set
     def get_id(course):
-        """If item has an _id, return it. Otherwise item will be the _id."""
+        """Return the course id, necessary to cope with embedding.
+
+        If the client requests `course` to be embedded, it will be a dict
+        with the id as key. Otherwise `course` will be just the id.
+        """
         return course['_id'] if isinstance(course, dict) else course
 
+    # Remove duplicates by using a set
     courses = set(get_id(item['course']) for item in signups)
     # Re-format signups into a dict so we can update them easier later
     signups_by_id = {str(item['_id']): item for item in signups}
