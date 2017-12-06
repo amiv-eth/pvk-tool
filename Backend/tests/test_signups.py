@@ -80,8 +80,6 @@ def test_not_enough_spots(app):
                                          data=first,
                                          assert_status=201)
 
-        print(first_response['_updated'])
-
         assert first_response['status'] == 'reserved'
 
         second = {
@@ -92,8 +90,6 @@ def test_not_enough_spots(app):
         second_response = app.client.post('/signups',
                                           data=second,
                                           assert_status=201)
-
-        print(second_response['_updated'])
 
         assert second_response['status'] == 'waiting'
 
@@ -196,7 +192,7 @@ def course(app):
     with app.admin():
         # Create a few courses to sign up to
         database = app.data.driver.db['courses']
-        yield str(database.insert({'_etag': 'tag'}))
+        yield database.insert({'_etag': 'tag'})
 
 
 @pytest.fixture
@@ -209,43 +205,47 @@ def mock_update():
 def test_post_signups_triggers_update(app, course, mock_update):
     """Test the the update of spots gets triggered correctly."""
     data = {
-        'course': course,
+        'course': str(course),
         'nethz': 'bli'
     }
     app.client.post('signups', data=data, assert_status=201)
-    mock_update.assert_called_with(course)
+
+    # Note: With post, the course comes from the request, not the db,
+    #       so the update will be called with a string
+    mock_update.assert_called_with(str(course))
 
 
 def test_batch_post_signups_triggers_update(app, course, mock_update):
     """Test the the update of spots gets triggered correctly."""
     # We need a second course to test everything
-    other_course = str(app.data.driver.db['courses'].insert({}))
+    other_course = app.data.driver.db['courses'].insert({})
 
     batch = [{
-        'course': course,
+        'course': str(course),
         'nethz': 'bla'
     }, {
-        'course': course,
+        'course': str(course),
         'nethz': 'bli'
     }, {
-        'course': other_course,
+        'course': str(other_course),
         'nethz': 'bli'
     }]
     app.client.post('/signups', data=batch, assert_status=201)
     # Same course doesn't get updated twice per request
-    mock_update.assert_has_calls([call(course), call(other_course)],
+    print(mock_update.mock_calls)
+    mock_update.assert_has_calls([call(str(course)), call(str(other_course))],
                                  any_order=True)
 
 
 def test_patch_signup_triggers_update(app, course, mock_update):
     """Test the the update of spots gets triggered correctly."""
-    fake = str(app.data.driver.db['signups'].insert({
+    fake = app.data.driver.db['signups'].insert({
         '_etag': 'tag',
         'nethz': 'lala',
         'course': 'oldcourse'
-    }))
-    app.client.patch('/signups/' + fake,
-                     data={'course': course},
+    })
+    app.client.patch('/signups/%s' % fake,
+                     data={'course': str(course)},
                      headers={'If-Match': 'tag'},
                      assert_status=200)
 
@@ -255,11 +255,11 @@ def test_patch_signup_triggers_update(app, course, mock_update):
 
 def test_delete_signup_triggers_update(app, course, mock_update):
     """Test the the update of spots gets triggered correctly."""
-    fake = str(app.data.driver.db['signups'].insert({
+    fake = app.data.driver.db['signups'].insert({
         'course': course,
         '_etag': 'tag'
-    }))
-    app.client.delete('/signups/' + fake,
+    })
+    app.client.delete('/signups/%s' % fake,
                       headers={'If-Match': 'tag'},
                       assert_status=204)
     mock_update.assert_called_with(course)
@@ -267,7 +267,7 @@ def test_delete_signup_triggers_update(app, course, mock_update):
 
 def test_patch_course_without_update(app, course, mock_update):
     """Update of spots gets only triggered if number of spots changes."""
-    app.client.patch('/courses/' + course,
+    app.client.patch('/courses/%s' % course,
                      data={'room': 'Something'},
                      headers={'If-Match': 'tag'},
                      assert_status=200)
@@ -276,7 +276,7 @@ def test_patch_course_without_update(app, course, mock_update):
 
 def test_patch_course_with_update(app, course, mock_update):
     """Update of spots gets only triggered if number of spots changes."""
-    app.client.patch('/courses/' + course,
+    app.client.patch('/courses/%s' % course,
                      data={'spots': '10'},
                      headers={'If-Match': 'tag'},
                      assert_status=200)
@@ -285,14 +285,26 @@ def test_patch_course_with_update(app, course, mock_update):
 
 def test_block_delete_ok(app, course):
     """If a course has no signups, it can be deleted."""
-    app.client.delete('/courses/' + course,
+    app.client.delete('/courses/%s' % course,
                       headers={'If-Match': 'tag'},
                       assert_status=204)
 
 
 def test_block_delete_blocked(app, course):
     """If a course has signups, it cannot be deleted."""
-    str(app.data.driver.db['signups'].insert({'course': course}))
-    app.client.delete('/courses/' + course,
+    app.data.driver.db['signups'].insert({'course': course})
+    app.client.delete('/courses/%s' % course,
                       headers={'If-Match': 'tag'},
                       assert_status=409)
+
+
+def test_embed_course(app, course):
+    """Test that embedding course on POST to signups doesn't break anything."""
+    data = {
+        'course': str(course),
+        'nethz': 'bli'
+    }
+
+    app.client.post('signups?embedded={"course": 1}',
+                    data=data,
+                    assert_status=201)

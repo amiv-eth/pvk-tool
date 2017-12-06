@@ -15,7 +15,6 @@ from itertools import chain
 
 from bson import ObjectId
 from flask import current_app, abort
-from eve.methods.get import getitem_internal
 from eve.methods.patch import patch_internal
 
 
@@ -39,7 +38,11 @@ def wrap_response(function):
 def new_signups(signups):
     """Update the status for all signups to a course."""
     # Remove duplicates by using a set
-    courses = set(item['course'] for item in signups)
+    def get_id(course):
+        """If item has an _id, return it. Otherwise item will be the _id."""
+        return course['_id'] if isinstance(course, dict) else course
+
+    courses = set(get_id(item['course']) for item in signups)
     # Re-format signups into a dict so we can update them easier later
     signups_by_id = {str(item['_id']): item for item in signups}
 
@@ -63,42 +66,46 @@ def patched_signup(update, original):
     """Update status of all signups of the original and new course."""
     # Only need to do something if course is changed
     if 'course' in update:
-        update_signups(str(update['course']))
-        update_signups(str(original['course']))
+        update_signups(update['course'])
+        update_signups(original['course'])
 
 
 def patched_course(update, original):
     """If the number of spots changed, update signups of course."""
     if 'spots' in update:
-        update_signups(str(original['_id']))
+        update_signups(original['_id'])
 
 
 def block_course_deletion(course):
     """If a course has signups, it can't be deleted."""
     count = current_app.data.driver.db['signups'].count({
-        'course': str(course['_id'])
+        'course': course['_id']
     })
 
     if count > 0:
         abort(409, "Course cannot be deleted as long as it has signups.")
 
 
-def update_signups(course):
-    """Update waiting list for all provided courses.
+def update_signups(course_id):
+    """Update waiting list for a course.
 
-    Return list of ids of all signups with modified status.
+    The course id can be given as string or ObjectId.
+
+    We can assume that the course exists, otherwise Eve stops earlier.
+
+    Return list of ids of all reserved signups.
     """
-    # If the course is embedded, we already have the data we need
-    course_data = getitem_internal('courses', _id=str(course))[0]
-    course_id = course_data['_id']
-    total_spots = course_data.get('spots', 0)
+    course_id = ObjectId(course_id)  # Ensure we are working with ObjectId
+
+    # Determine how many spots the course has
+    total_spots = (current_app.data.driver.db['courses']
+                   .find_one({'_id': course_id}, projection={'spots': 1})
+                   .get('spots', 0))
 
     # Next, count current signups not on waiting list
-    collection = current_app.data.driver.db['signups']
-    taken_spots = collection.count({
-        'course': ObjectId(str(course)),
-        'status': {'$ne': 'waiting'}
-    })
+    signups = current_app.data.driver.db['signups']
+    taken_spots = signups.count({'course': course_id,
+                                 'status': {'$ne': 'waiting'}})
 
     available_spots = total_spots - taken_spots
 
@@ -107,15 +114,16 @@ def update_signups(course):
 
     # Finally, get as many signups on the waiting list as spots available
     # sort by _updated, use nethz as tie breaker
-    signups = collection.find({'course': course_id, 'status': 'waiting'},
-                              projection=['_id', 'status'],
-                              sort=[('_updated', 1), ('nethz', 1)],
-                              limit=available_spots)
+    chosen_signups = signups.find({'course': course_id,
+                                   'status': 'waiting'},
+                                  projection=['_id'],
+                                  sort=[('_updated', 1), ('nethz', 1)],
+                                  limit=available_spots)
 
-    signup_ids = [item['_id'] for item in signups]
+    signup_ids = [item['_id'] for item in chosen_signups]
 
-    collection.update_many({'_id': {'$in': signup_ids}},
-                           {'$set': {'status': 'reserved'}})
+    signups.update_many({'_id': {'$in': signup_ids}},
+                        {'$set': {'status': 'reserved'}})
 
     return [str(item) for item in signup_ids]
 
