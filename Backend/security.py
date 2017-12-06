@@ -56,14 +56,14 @@ def request_cache(key):
 @request_cache('apiuser')
 def get_user():
     """Return user id if the token is valid, None otherwise."""
-    response = api_get(
-        'sessions',
-        where={'token': g.get('token', '')},
-        projection={'user': 1}
-    )
-    if response:
-        print('Resp', response['_items'][0])
-        return response['_items'][0]['user']
+    if g.get('token') is not None:
+        response = api_get(
+            'sessions',
+            where={'token': g.get('token', '')},
+            projection={'user': 1}
+        )
+        if response:
+            return response['_items'][0]['user']
 
 
 @request_cache('nethz')
@@ -71,7 +71,6 @@ def get_nethz():
     """Return nethz of current user."""
     if get_user() is not None:
         response = api_get('users/' + get_user())
-        print('users/' + get_user(), response)
         return response.get('nethz')
 
 
@@ -96,7 +95,9 @@ def is_admin():
             membership = api_get(
                 'groupmemberships',
                 where={'user': user_id, 'group': group_id},
-                projection={'_id': 1}
+                # This Projection currectly crashes AMIVAPI
+                # https://github.com/amiv-eth/amivapi/issues/206
+                # projection={'_id': 1}
             )
 
             return bool(membership and membership['_items'])

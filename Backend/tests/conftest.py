@@ -27,6 +27,38 @@ TEST_SETTINGS = {
 }
 
 
+# Check command line options for API token
+# This way we can conveniently skip integration tests per default,
+# but still provide a convenient interface to run them
+
+def pytest_addoption(parser):
+    """Add options to get tokens from command line."""
+    parser.addoption("--usertoken",
+                     action="store",
+                     help="amivapi user token")
+    parser.addoption("--admintoken",
+                     action="store",
+                     help="amivapi pvk admin token")
+
+
+@pytest.fixture
+def admintoken(request):
+    """Fixture to provide admin token or skip test if its not available."""
+    token = request.config.getoption('--admintoken')
+    if token is None:
+        pytest.skip("need api admin token to run")
+    return token
+
+
+@pytest.fixture
+def usertoken(request):
+    """Fixture to provide user token or skip test if its not available."""
+    token = request.config.getoption('--usertoken')
+    if token is None:
+        pytest.skip("need api user token to run")
+    return token
+
+
 class TestClient(FlaskClient):
     """Custom test client for easier json handling."""
 

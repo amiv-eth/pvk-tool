@@ -98,3 +98,22 @@ But don't worry, it's very easy to set them up -- take a look at the
   ```bash
   py.test
   ```
+
+- Per default, integration tests with amivapi are skipped, since they require
+  valid amivapi tokens. 
+
+  You can run  `py.test -rs` to get a summary including skipped tests.
+
+  The api tests can be included by provide tokens for a user (*not in* the
+  `PVK Admins` group) and an admin (*in* the `PVK Admins` group)
+
+  ```bash
+  # Replace <usertoken> and <admintoken> (including <>) with your tokens
+  py.test -rs --usertoken <usertoken> --admintoken <admintoken>
+  ```
+
+  An easy way to aquire the tokens is `curl`:
+
+  ```bash
+  curl -X POST -Fusername <user> -Fpassword <pass> amiv-api.ethz.ch/sessions
+  ```
