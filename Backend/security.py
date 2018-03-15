@@ -34,8 +34,7 @@ def api_get(endpoint, **params):
     formatted = {key: json.dumps(value) for (key, value) in params.items()}
 
     response = requests.get(url, params=formatted, headers=headers)
-    if response.status_code == 200:
-        return response.json()
+    return response.json() if (response.status_code == 200) else None
 
 
 def request_cache(key):
@@ -64,6 +63,7 @@ def get_user():
         )
         if response:
             return response['_items'][0]['user']
+    return None
 
 
 @request_cache('nethz')
@@ -72,6 +72,7 @@ def get_nethz():
     if get_user() is not None:
         response = api_get('users/' + get_user())
         return response.get('nethz')
+    return None
 
 
 @request_cache('admin')
@@ -111,7 +112,7 @@ def is_admin():
 class APIAuth(TokenAuth):
     """Verifies the request token with AMIVAPI."""
 
-    def check_auth(self, token, allowed_roles, resource, method):
+    def check_auth(self, token, _, resource, method):
         """Allow request if token exists in AMIVAPI.
 
         Furthermore, grant admin rights if the user is member of the
@@ -135,8 +136,9 @@ class APIAuth(TokenAuth):
 
         if method in allowed_methods or is_admin():
             return True
-        else:
-            abort(403)
+
+        abort(403)
+        return False
 
 
 # Dynamic Visibility Filter
