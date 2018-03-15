@@ -194,59 +194,66 @@ const userCourses = {
   },
 
   get selected() {
-    // We are only interested in the first (only) item
-    const sel = this.resources.selections.list[0];
-    return sel ? sel.courses : [];
+    return this.resources.selections.list;
   },
+
+  get signups() { return this.resources.signups.list; },
   get reserved() {
     return this.resources.signups.list.filter(({ status }) =>
       status === 'reserved');
+  },
+  get waiting() {
+    return this.resources.signups.list.filter(({ status }) =>
+      status !== 'reserved' && status !== 'accepted');
   },
   get accepted() {
     return this.resources.signups.list.filter(({ status }) =>
       status === 'accepted');
   },
 
-  selectCourse(courseId) {
-    // If user already has a selection and update it
-    const currentSelection = this.resources.selections.list[0] || [];
-    if (this.selected.length > 0) {
-      const selectionId = currentSelection._id;
-      const newSelection = [
-        ...currentSelection.courses,
-        courseId,
-      ];
-      return this.resources.selections.patchItem(
-        selectionId,
-        { courses: newSelection },
-      );
-      // TODO: Provide error feedback to user in .catch
-    }
-
-    // Otherwise create a new selection
+  // Select a course
+  select(courseId) {
     return this.resources.selections.post({
       nethz: session.user.nethz,
-      courses: [courseId],
+      course: courseId,
     });
-  },
-
-  deselectCourse(courseId) {
-    const selection = this.resources.selections.list[0] || [];
-    const newSelection = selection.courses.filter(item => item !== courseId);
-    const selectionId = selection._id;
-
-    if (newSelection.length === 0) {
-      this.resources.selections.deleteItem(selectionId);
-    } else {
-      this.resources.selections.patchItem(
-        selectionId,
-        { courses: newSelection },
-      );
-    }
     // TODO: Provide error feedback to user in .catch
   },
 
-  reserve() {},
+  // Remove a selection
+  deselect(selectionId) {
+    return this.resources.selections.deleteItem(selectionId);
+    // TODO: Provide error feedback to user in .catch
+  },
+
+  // Reserve all selected course
+  reserve() {
+    // Apply only to selections that actually have been created
+    const selections = Object.values(this.resources.selections._items);
+    selections.forEach(({ _id, course }) => {
+      // Delete selection
+      this.deselect(_id);
+
+      // Create signup
+      return this.resources.signups.post({
+        nethz: session.user.nethz,
+        course,
+      }).catch((err) => {
+        // Restore selection
+        this.select(course);
+        throw err;
+        // Todo: Provide feedback to user
+      });
+    });
+  },
+
+  // Give up a reserved signup
+  free(signupId) {
+    return this.resources.signups.deleteItem(signupId);
+    // TODO: Provide error feedback to user
+  },
+
+  // TODO: Implement
   pay() {},
 };
 

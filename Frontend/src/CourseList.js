@@ -1,14 +1,13 @@
 const m = require('mithril');
 const { courses, userCourses } = require('./backend.js');
 
-function isSelected(course) {
-  return userCourses.selected.some(sel => sel === course._id);
+function isSelectedOrReserved(course) {
+  return userCourses.selected.some(sel => sel.course === course._id) ||
+    userCourses.signups.some(signup => signup.course === course._id);
 }
 
-function isBusy() { return userCourses.resources.selections.isBusy(); }
-
 module.exports = {
-  oninit() { courses.get(); },
+  oninit() { courses.get().then((d) => { console.log(d); }); },
 
   view() {
     return m('table', [
@@ -17,6 +16,9 @@ module.exports = {
           m('th', 'Course'),
           m('th', 'Department'),
           m('th', 'Name'),
+          m('th', 'Spots'),
+          m('th', 'Signup Start'),
+          m('th', 'Signup End'),
           m('th', 'Starting time'),
           m('th', 'Ending time'),
         ]),
@@ -26,6 +28,9 @@ module.exports = {
           m('td', course.lecture.title),
           m('td', course.lecture.department),
           m('td', course.assistant),
+          m('td', course.spots),
+          m('td', course.signup.start),
+          m('td', course.signup.end),
           course.datetimes.map(timeslot => [
             m('td', timeslot.start),
             m('td', timeslot.end),
@@ -35,8 +40,8 @@ module.exports = {
             m(
               'button',
               {
-                onclick() { userCourses.selectCourse(course._id); },
-                disabled: isSelected(course) || isBusy(),
+                onclick() { userCourses.select(course._id); },
+                disabled: isSelectedOrReserved(course),
                 //   ?
                 //  true : false,
                 //  return false;
