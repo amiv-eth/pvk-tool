@@ -1,8 +1,8 @@
 /* eslint-disable no-param-reassign */
 
-const m = require('mithril');
+import m from 'mithril';
 
-const { lectures } = require('./backend.js');
+import { lectures } from './backend';
 
 const currentCourse = {
   assistantList: ['Mathis', 'Sandro', 'Celina'],
@@ -36,8 +36,8 @@ function bind(obj, prop, type = 'text') {
   };
 }
 
-const timespanView = {
-  view({ attrs: { timespan } }) {
+class TimespanView {
+  static view({ attrs: { timespan } }) {
     return [
       m('div', 'start: '),
       m(
@@ -60,12 +60,12 @@ const timespanView = {
         'end',
       ),
     ];
-  },
-};
+  }
+}
 
 
-const chosenLecture = {
-  view() {
+class chosenLecture {
+  static view() {
     return [
       m(
         'select',
@@ -78,11 +78,11 @@ const chosenLecture = {
           m('option', lecture.title)),
       ),
     ];
-  },
-};
+  }
+}
 
-const chosenAssistant = {
-  view() {
+class chosenAssistant {
+  static view() {
     return [
       m('select', [
         assistantList().map(assistant => [
@@ -90,11 +90,11 @@ const chosenAssistant = {
         ]),
       ]),
     ];
-  },
-};
+  }
+}
 
-const participantNumber = {
-  view() {
+class participantNumber {
+  static view() {
     return [
       'How many Students may choose the Course? ',
       m('div'),
@@ -103,11 +103,11 @@ const participantNumber = {
         bind(currentCourse, 'spots', 'number'),
       ),
     ];
-  },
-};
+  }
+}
 
-const courseRoom = {
-  view() {
+class courseRoom {
+  static view() {
     return [
       'What room will the course take place in? ',
       m('div'),
@@ -116,8 +116,8 @@ const courseRoom = {
         bind(currentCourse, 'room'),
       ),
     ];
-  },
-};
+  }
+}
 
 function addDatetime() {
   currentCourse.datetimes.push('');
@@ -128,10 +128,10 @@ function removeDatetime(index) {
 }
 
 
-module.exports = {
-  oninit() { lectures.get(); },
+export default class CourseCreationView {
+  static oninit() { lectures.get(); }
 
-  view() {
+  static view() {
     return [
       m('div', 'As Admin, you can add Courses'),
       m('div', 'Choose Lecture'),
@@ -144,10 +144,10 @@ module.exports = {
       m(courseRoom),
       m('div', 'What time does the course signup start and end?'),
       m('div'),
-      m(timespanView, { timespan: currentCourse.signup }),
+      m(TimespanView, { timespan: currentCourse.signup }),
       m('div', 'What time does the ourcse start and end?'),
       currentCourse.datetimes.map((timespan, index) => [
-        m(timespanView, { timespan }),
+        m(TimespanView, { timespan }),
         m(
           'button',
           {
@@ -165,5 +165,5 @@ module.exports = {
         'Add other course time',
       ),
     ];
-  },
-};
+  }
+}

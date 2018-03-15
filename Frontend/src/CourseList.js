@@ -1,15 +1,15 @@
-const m = require('mithril');
-const { courses, userCourses } = require('./backend.js');
+import m from 'mithril';
+import { courses, userCourses } from './backend';
 
 function isSelectedOrReserved(course) {
   return userCourses.selected.some(sel => sel.course === course._id) ||
     userCourses.signups.some(signup => signup.course === course._id);
 }
 
-module.exports = {
-  oninit() { courses.get().then((d) => { console.log(d); }); },
+export default class CourseList {
+  static oninit() { courses.get(); }
 
-  view() {
+  static view() {
     return m('table', [
       m('thead', [
         m('tr', [
@@ -54,5 +54,5 @@ module.exports = {
           ),
         ]))),
     ]);
-  },
-};
+  }
+}

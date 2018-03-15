@@ -1,11 +1,9 @@
 // Api calls
 
-const m = require('mithril');
-const session = require('./session.js');
-
+import m from 'mithril';
+import session from './session';
 
 const pvkApiUrl = `//${window.location.hostname}/api`;
-
 
 // Helper to filter temp out of list
 function withoutTemp(list, temp) { return list.filter(item => item !== temp); }
@@ -175,8 +173,7 @@ class Resource {
   }
 }
 
-const userCourses = {
-
+export const userCourses = {
   resources: {
     selections: new Resource(
       'selections',
@@ -257,11 +254,5 @@ const userCourses = {
   pay() {},
 };
 
-const courses = new Resource('courses', { embedded: { lecture: 1 } });
-const lectures = new Resource('lectures');
-
-module.exports = {
-  userCourses,
-  courses,
-  lectures,
-};
+export const courses = new Resource('courses', { embedded: { lecture: 1 } });
+export const lectures = new Resource('lectures');

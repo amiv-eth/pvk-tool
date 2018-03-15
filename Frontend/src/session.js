@@ -1,14 +1,14 @@
 // Session with AMIVAPI
 
-const m = require('mithril');
-const ls = require('local-storage');
+import m from 'mithril';
+import ls from 'local-storage';
 
 const adminGroupName = 'PVK Admins';
 const amivApiUrl = 'https://amiv-api.ethz.ch';
 
 const storedSession = ls('session');
 
-module.exports = {
+export default {
   // Quick check if session exists
   active() { return this.data.token; },
 

@@ -3,8 +3,8 @@
 //
 // Includes the generic login / logout
 
-const m = require('mithril');
-const session = require('./session.js');
+import m from 'mithril';
+import session from './session';
 
 let nethz = '';
 let password = '';
@@ -38,8 +38,8 @@ function logout() {
   });
 }
 
-const LoginPage = {
-  view() {
+class LoginPage {
+  static view() {
     return [
       m('h1', 'PVK Tool Demo'),
       m('div', error),
@@ -73,15 +73,14 @@ const LoginPage = {
         '',
       ),
     ];
-  },
-};
+  }
+}
 
 
-const SidebarHeader = {
-  view() {
+class SidebarHeader {
+  static view() {
     return [
-      m('header', m('img', { src: '/home/alex/contractor/contractor/static/logo.svg' })),
-      // m('h1', 'PVK Tool Demo'),
+      m('h1', 'PVK Tool Demo'),
       m('p', `Hello, ${session.user.name}`),
       m('button', { onclick: logout }, 'Logout'),
       session.admin ? [
@@ -91,15 +90,15 @@ const SidebarHeader = {
         m('a', { href: '/admin', oncreate: m.route.link }, 'Admin Tools'),
       ] : [],
     ];
-  },
-};
+  }
+}
 
 
-module.exports = {
-  view(vnode) {
+export default class Layout {
+  static view(vnode) {
     return session.active() ? m('', [
       m('aside', [m(SidebarHeader), m(vnode.attrs.sidebar)]),
       m('main', m(vnode.attrs.content)),
     ]) : m(LoginPage);
-  },
-};
+  }
+}

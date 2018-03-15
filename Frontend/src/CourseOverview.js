@@ -1,7 +1,7 @@
-const m = require('mithril');
+import m from 'mithril';
 
-module.exports = {
-  view() {
+export default class CourseOverview {
+  static view() {
     return m('div', 'You are an admin. Nice!');
-  },
-};
+  }
+}

@@ -1,13 +1,14 @@
-const m = require('mithril');
-const session = require('./session.js');
+import m from 'mithril';
 
-const Layout = require('./Layout.js');
-const UserSidebar = require('./UserSidebar.js');
-const AdminSidebar = require('./AdminSidebar.js');
-const CourseList = require('./CourseList.js');
-const CourseOverview = require('./CourseOverview.js');
-const CreateLecture = require('./CreateLecture.js');
-const CreateCourse = require('./CreateCourse.js');
+import session from './session';
+
+import Layout from './Layout';
+import UserSidebar from './UserSidebar';
+import AdminSidebar from './AdminSidebar';
+import CourseList from './CourseList';
+import CourseOverview from './CourseOverview';
+import CreateLecture from './CreateLecture';
+import CreateCourse from './CreateCourse';
 
 m.route(document.body, '/courses', {
   '/courses': {

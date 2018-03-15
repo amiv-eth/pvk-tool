@@ -1,8 +1,8 @@
 /* eslint-disable no-param-reassign */
 
-const m = require('mithril');
+import m from 'mithril';
 
-const { lectures } = require('./backend.js');
+import { lectures } from './backend';
 
 const currentLecture = {
   title: 'Hallo',
@@ -36,8 +36,8 @@ function createLecture() {
   });
 }
 
-const enterField = {
-  view() {
+class Form {
+  static view() {
     return [
       m('div', 'Title: '),
       m('input', bind(currentLecture, 'title')),
@@ -69,11 +69,11 @@ const enterField = {
         'Add Assistants',
       ),
     ];
-  },
-};
+  }
+}
 
-const listLecture = {
-  view() {
+class LectureList {
+  static view() {
     return [
       m('div', 'Folgender Kurs wurde eingegeben:'),
       m('div'),
@@ -83,18 +83,18 @@ const listLecture = {
       m('div'),
       `year: ${currentLecture.year}`,
     ];
-  },
-};
+  }
+}
 
 
-module.exports = {
-  oninit() { lectures.get(); },
-  view() {
+export default class LectureCreationView {
+  static oninit() { lectures.get(); }
+  static view() {
     return [
       m('div', 'You are an admin. Niceooo!'),
       m('div', 'enter the following fields for the new Lecture'),
-      m(enterField),
-      m(listLecture),
+      m(Form),
+      m(LectureList),
       m('div'),
       m(
         'button',
@@ -113,5 +113,5 @@ module.exports = {
         ),
       ])),
     ];
-  },
-};
+  }
+}
