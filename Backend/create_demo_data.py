@@ -11,7 +11,7 @@ from datetime import datetime as dt, timedelta
 import requests
 
 AMIVAPI_DEV_URL = "https://amiv-api.ethz.ch"
-PVK_DEV_URL = 'http://pvk-api-dev.amiv.ethz.ch'
+PVK_DEV_URL = 'http://localhost:8080'  # 'http://pvk-api-dev.amiv.ethz.ch'
 
 DATE_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 ASSISTANTS = ['pablo', 'assi', 'anon', 'mongo']
@@ -34,7 +34,6 @@ def post(resource, data, token):
     response = requests.post('%s/%s' % (PVK_DEV_URL, resource),
                              json=data,
                              headers={'Authorization': token})
-    print(response)
     data = response.json()
 
     if response.status_code != 201:
