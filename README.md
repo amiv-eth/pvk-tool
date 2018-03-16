@@ -6,50 +6,6 @@ A new AMIV PVK tool using Eve and authenticating users with AMIVAPI.
 
 WIP.
 
-### Starting A Local Backend for Development
-
-Using Docker, you can quickly set up a backend with demo data to focus on
-frontend development. Here's how:
-
-1. [Install Docker](https://www.docker.com/community-edition#/download)
-
-2. You need MongoDB. Luckily, you can just use Docker for that, too.
-   (It's one long command, make sure to copy everything to your command line)
-  
-   ```bash
-   docker run --name mongodb -d -p 27017 \
-     -e MONGODB_DATABASE="pvk" \
-     -e MONGODB_USERNAME="pvkuser" \
-     -e MONGODB_PASSWORD="pvkpass" \
-     bitnami/mongodb:latest
-   ```
-  
-   The environment variables specified with `-e` make sure that the db and user
-   are created
-
-3. Build and start the dev-container. (Two commands this time)
-   Adjust the path `./Backend` at the end as needed so it points to the
-   `backend` directory.
-
-   ```bash
-   docker build -t pvk ./Backend/
-   ```
-
-   ```bash
-   docker run --name pvk -d -p 80:80 \
-     --link mongodb \
-     -e MONGO_HOST="mongodb" \
-     pvk
-   ```
-
-   The `--link` and `-e` make sure the backend can access the db container.
-
-And now the backend is available at port 80, ready to use!
-
-Use the commands `docker start pvk` / `docker stop pvk` and
-`docker start mongodb` / `docker stop mongodb` to control your containers.
-
-
 ## Backend
 
 The backend is implemented using [Eve](http://python-eve.org), a python

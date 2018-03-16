@@ -1,9 +1,15 @@
+stages:
+  - test
+  - build
+  - deploy
+
 frontend_eslint:
+  stage: test
   image: node:latest
   before_script:
-   - cd ./Frontend
-   - npm install
-   - cd ..
+    - cd ./Frontend
+    - npm install
+    - cd ..
 
   when: always
   script:
@@ -11,7 +17,8 @@ frontend_eslint:
     - npm run lint
     - cd ..
 
-backend:
+backend_tests:
+  stage: test
   image: python:alpine
   services:
     - name: bitnami/mongodb:latest
@@ -24,9 +31,59 @@ backend:
     MONGODB_PASSWORD: pvk_pass
 
   before_script:
-   - pip install tox
+    - pip install tox
   script:
     - cd ./Backend
     - tox
     - cd ..
 
+backend_build_master:
+  stage: build
+  
+  image: docker:latest
+  services:
+    - docker:dind
+  
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+
+  script:
+    - docker build --pull -t "$CI_REGISTRY_IMAGE_BACKEND" ./Backend/
+    - docker push "$CI_REGISTRY_IMAGE_BACKEND"
+  
+  only:
+    - master
+
+backend_build:
+  stage: build
+
+  image: docker:latest
+  services:
+    - docker:dind
+
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+
+  script:
+    - docker build --pull -t "$CI_REGISTRY_IMAGE_BACKEND:$CI_COMMIT_REF_SLUG" ./Backend/
+    - docker push "$CI_REGISTRY_IMAGE_BACKEND:$CI_COMMIT_REF_SLUG"
+  
+  except:
+    - master
+
+backend_deploy:
+  stage: deploy
+
+  image: jaromirpufler/docker-openssh-client
+
+  variables:
+    SSH_DEPLOY_KEY: $DEPLOY_PRIVATE_KEY
+
+  script:
+    - ssh $DEPLOY_HOST "docker pull $CI_REGISTRY_IMAGE_BACKEND; docker service update --force $DEPLOY_SERVICE_BACKEND;"
+
+  only:
+    - master
+
+# There is no production server yet
+# backend_deploy_master:
