@@ -1,6 +1,8 @@
 // User Sidebar
 import m from 'mithril';
 import { userCourses, courses } from './backend';
+import SidebarCard from './components/SidebarCard';
+
 
 class CourseView {
   static view({ attrs: { _id, courseId, remove } }) {
@@ -22,35 +24,46 @@ export default class UserSidebar {
 
   static view() {
     return [
-      m('h1', 'Selected Courses'),
-      userCourses.selected.length ? [
-        userCourses.selected.map(({ _id, course: courseId }) =>
-          m(
-            CourseView,
-            { _id, courseId, remove() { userCourses.deselect(_id); } },
-          )),
-        m('button', { onclick() { userCourses.reserve(); } }, 'reserve'),
-      ] : m('p', 'No courses selected.'),
+      m(SidebarCard, {
+        title: 'Selected Courses',
+        content: userCourses.selected.length ? [
+          userCourses.selected.map(({ _id, course: courseId }) =>
+            m(
+              CourseView,
+              { _id, courseId, remove() { userCourses.deselect(_id); } },
+            )),
+        ] : 'No courses selected.',
+        action() { userCourses.reserve(); },
+        actionName: 'reserve',
+      }),
 
-      m('h1', 'Reserved Courses'),
-      userCourses.reserved.length ? [
-        userCourses.reserved.map(({ _id, course: courseId }) =>
+      m(SidebarCard, {
+        title: 'Waiting List',
+        content: userCourses.waiting.map(({ _id, course: courseId }) =>
           m(
             CourseView,
             { _id, courseId, remove() { userCourses.free(_id); } },
           )),
-        // m('button', { onclick() { userCourses.pay(); } }, 'Pay'),
-      ] : m('p', 'No courses reserved.'),
-      userCourses.waiting.length ? [
-        m('h4', 'Waiting'),
-        userCourses.waiting.map(({ _id, course: courseId }) =>
-          m(
-            CourseView,
-            { _id, courseId, remove() { userCourses.free(_id); } },
-          )),
-      ] : [],
-      m('h1', 'Accepted Courses'),
-      m('p', 'No courses accepted.'), // TODO: Implement
+      }),
+
+
+      m(SidebarCard, {
+        title: 'Reserved Courses',
+        content: userCourses.reserved.length ? [
+          userCourses.reserved.map(({ _id, course: courseId }) =>
+            m(
+              CourseView,
+              { _id, courseId, remove() { userCourses.free(_id); } },
+            )),
+        ] : 'No courses reserved.',
+        action() { userCourses.pay(); },
+        actionName: 'pay',
+      }),
+
+      m(SidebarCard, {
+        title: 'Accepted Courses',
+        content: 'No courses accepted.',
+      }),
     ];
   }
 }

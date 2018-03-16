@@ -6,6 +6,8 @@
 import m from 'mithril';
 import session from './session';
 
+import './layout.css';
+
 let nethz = '';
 let password = '';
 let error = '';
@@ -80,15 +82,15 @@ class LoginPage {
 class SidebarHeader {
   static view() {
     return [
-      m('h1', 'PVK Tool Demo'),
-      m('p', `Hello, ${session.user.name}`),
-      m('button', { onclick: logout }, 'Logout'),
-      session.admin ? [
-        m('br'),
+      m('h1.header-logo', 'PVK Tool Demo'),
+      session.admin ? m('.header-admin-switch', [
         m('a', { href: '/course', oncreate: m.route.link }, 'User Tools'),
-        m('br'),
         m('a', { href: '/admin', oncreate: m.route.link }, 'Admin Tools'),
-      ] : [],
+      ]) : [],
+      m('.header-logout', [
+        m('p', `Hello, ${session.user.name}`),
+        m('button', { onclick: logout }, 'Logout'),
+      ]),
     ];
   }
 }
@@ -96,9 +98,10 @@ class SidebarHeader {
 
 export default class Layout {
   static view(vnode) {
-    return session.active() ? m('', [
-      m('aside', [m(SidebarHeader), m(vnode.attrs.sidebar)]),
+    return session.active() ? [
+      m('header', m(SidebarHeader)),
+      m('aside', m(vnode.attrs.sidebar)),
       m('main', m(vnode.attrs.content)),
-    ]) : m(LoginPage);
+    ] : m(LoginPage);
   }
 }
