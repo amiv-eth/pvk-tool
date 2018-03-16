@@ -16,7 +16,7 @@ import pytest
 
 from flask import g
 from flask.testing import FlaskClient
-from app import create_app
+from backend.app import create_app
 
 
 TEST_SETTINGS = {

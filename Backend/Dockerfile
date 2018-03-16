@@ -1,22 +1,28 @@
-from python:3.6-alpine
+FROM python:3.6-alpine
 
-ENV FLASK_APP app.py
-ENV FLASK_DEBUG true
-EXPOSE 80
+# Create user with home directory and no password and change workdir
+RUN adduser -Dh /pvk pvk
+WORKDIR /pvk
+# API will run on port 80
+EXPOSE 8080
+# Environment variable for config, use path for docker secrets as default
+ENV pvk_CONFIG=/run/secrets/pvk_config
 
-COPY ./requirements.txt /requirements.txt
-RUN pip install -r requirements.txt
+# Install bjoern and dependencies for install (we need to keep libev)
+RUN apk add --no-cache --virtual .deps \
+        musl-dev python-dev gcc git && \
+    apk add --no-cache libev-dev && \
+    pip install bjoern
 
-COPY ./app.py /app.py
-COPY ./settings.py /settings.py
-COPY ./security.py /security.py
-COPY ./signups.py /signups.py
-COPY ./validation.py /validation.py
+# Copy files to /api directory, install requirements
+COPY ./ /pvk
+RUN pip install -r /pvk/requirements.txt
 
-COPY ./demo_server.py /demo_server.py
+# Cleanup dependencies
+RUN apk del .deps
 
-WORKDIR /
+# Switch user
+USER pvk
 
-# Run database init before starting dev server
-ENTRYPOINT ["python"]
-CMD ["demo_server.py"]
+# Start bjoern
+CMD ["python3", "server.py"]

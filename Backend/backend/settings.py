@@ -11,16 +11,13 @@ schema directly.
 
 from os import environ
 
-# prefix everything with /api
-URL_PREFIX = 'api'
-
 # CORS
 X_DOMAINS = '*'
 X_HEADERS = ['Authorization', 'If-Match', 'If-Modified-Since', 'Content-Type']
 
 # AMIVAPI URL and Admin Group
-AMIVAPI_URL = "https://amiv-api.ethz.ch"
-ADMIN_GROUP_NAME = 'PVK Admins'
+AMIVAPI_URL = environ.get('AMIVAPI_URL', 'https://amiv-api.ethz.ch')
+ADMIN_GROUP_NAME = environ.get('AMIVAPI_GROUP', 'PVK Admins')
 
 # DB
 MONGO_HOST = environ.get('MONGO_HOST', 'localhost')

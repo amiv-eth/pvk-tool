@@ -12,7 +12,7 @@ TODO: Several validation rules still need to be implemented. See `settings.py`.
 from flask import request, current_app
 from eve.io.mongo import Validator
 
-from security import is_admin, get_nethz
+from backend.security import is_admin, get_nethz
 
 
 class APIValidator(Validator):

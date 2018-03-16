@@ -21,9 +21,9 @@ from os import getcwd
 from eve import Eve
 from flask import Config
 
-from security import APIAuth, only_own_nethz
-from validation import APIValidator
-from signups import (
+from backend.security import APIAuth, only_own_nethz
+from backend.validation import APIValidator
+from backend.signups import (
     new_signups,
     deleted_signup,
     patched_signup,
@@ -40,7 +40,7 @@ def create_app(settings=None):
     makes this easy) and updated settings from the function call, if provided.
     """
     config = Config(getcwd())
-    config.from_object('settings')
+    config.from_object('backend.settings')
     if settings is not None:
         config.update(settings)
 

@@ -19,7 +19,7 @@ So we just put the provided token into g and see if the functions work.
 
 from flask import g
 
-from security import get_user, get_nethz, is_admin
+from backend.security import get_user, get_nethz, is_admin
 
 
 def test_user_found(app, usertoken):

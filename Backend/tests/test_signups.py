@@ -10,7 +10,7 @@ from datetime import datetime as dt
 from unittest.mock import patch, call
 import pytest
 
-from signups import update_signups
+from backend.signups import update_signups
 
 
 def test_success(app):
@@ -198,7 +198,7 @@ def course(app):
 @pytest.fixture
 def mock_update():
     """Mock the actual updating of spots for a test."""
-    with patch('signups.update_signups', return_value=[]) as update:
+    with patch('backend.signups.update_signups', return_value=[]) as update:
         yield update
 
 
