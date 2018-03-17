@@ -116,7 +116,7 @@ function displayCard(course) {
         m('li', [dateFormatterStart(timeslot.start), '  - ',
           dateFormatterEnd(timeslot.end)]))),
   };
-  if (!isOverlapping(userCourses.selected, course)) {
+  if (isOverlapping(userCourses.selected, course) === 0) {
     attributes.action = () => {
       userCourses.select(course._id);
     };

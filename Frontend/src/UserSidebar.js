@@ -7,7 +7,7 @@ import SidebarCard from './components/SidebarCard';
 class CourseView {
   static view({ attrs: { _id, courseId, remove } }) {
     // Get Lecture of Course
-    const course = courses.list.find(item => item._id === courseId);
+    const course = courses.items[courseId];
     // Otherwise display loading
     return m('li', [
       m('span', course ? course.lecture.title : 'Loading...'),
