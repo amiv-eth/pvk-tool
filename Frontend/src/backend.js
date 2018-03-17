@@ -74,16 +74,34 @@ class Resource {
     return [...currentItems, ...this._items_new];
   }
 
-  get() {
+  get(page = 1) {
+    // Build query with pagination
+    const query = Object.assign({}, this.query, { page });
+
     return request({
       resource: this.name,
-      query: this.query,
+      query,
     }).then((data) => {
       // Fill own list
-      this._items = {};
       data._items.forEach((item) => { this._items[item._id] = item; });
       // Pass on data
       return data;
+    });
+  }
+
+  getAll() {
+    this._items = {};
+
+    // Get first page to know number of results, then request others
+    return this.get(1).then((response) => {
+      const userCount = response._meta.total;
+      const pageSize = response._meta.max_results;
+      const pages = Math.ceil(userCount / pageSize);
+
+      for (let p = 2; p <= pages; p += 1) {
+        this.get(p);
+      }
+      return response;
     });
   }
 
