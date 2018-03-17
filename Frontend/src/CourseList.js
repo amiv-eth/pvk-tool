@@ -4,6 +4,7 @@
 import m from 'mithril';
 import { courses, userCourses } from './backend';
 import SidebarCard from './components/SidebarCard';
+import isOverlapping from './timeOverlap';
 
 function isSelectedOrReserved(course) {
   return userCourses.selected.some(sel => sel.course === course._id) ||
@@ -107,16 +108,21 @@ function dateFormatterEnd(datestring) {
 }
 
 function displayCard(course) {
-  return m(SidebarCard, {
+  const attributes = {
     title: `Assistant: ${course.assistant}`,
     subtitle: `Room: ${course.room}`,
     content:
       m('ul', course.datetimes.map(timeslot =>
         m('li', [dateFormatterStart(timeslot.start), '  - ',
           dateFormatterEnd(timeslot.end)]))),
-    action() { userCourses.select(course._id); },
-    actionName: 'Add',
-  });
+  };
+  if (!isOverlapping(userCourses.selected, course)) {
+    attributes.action = () => {
+      userCourses.select(course._id);
+    };
+    attributes.actionName = 'Add';
+  }
+  return m(SidebarCard, attributes);
 }
 
 
