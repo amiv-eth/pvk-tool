@@ -21,7 +21,7 @@ body {
 
   /* Grid power! */
   display: grid;
-  grid-template-columns: [container-start] 5% [header-start sidebar-start] auto
+  grid-template-columns: [container-start] 5% [header-start sidebar-start] 30%
                          [sidebar-end content-start] auto
                          [header-end content-end] 5% [container-end];
   grid-template-rows: [header-start] auto [header-end] auto

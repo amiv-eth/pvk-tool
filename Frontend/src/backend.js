@@ -63,16 +63,30 @@ class Resource {
     this._items_deleted = [];
   }
 
+  get _currentItems() {
+    // Hide items marked to be deletd and include unconfirmed patches
+    return Object.keys(this._items)
+      .filter(key => this._items_deleted.indexOf(key) === -1)
+      .map(key => this._items_updated[key] || this._items[key]);
+  }
+
   isBusy() {
     return Object.keys(this._items_updated).length !== 0 ||
       this._items_deleted.length !== 0;
   }
 
+  // Access items by id
+  get items() {
+    const obj = {};
+    this._currentItems.forEach((item) => {
+      obj[item._id] = item;
+    });
+    return obj;
+  }
+
+  // Access items as list
   get list() {
-    const currentItems = Object.keys(this._items)
-      .filter(key => this._items_deleted.indexOf(key) === -1)
-      .map(key => this._items_updated[key] || this._items[key]);
-    return [...currentItems, ...this._items_new];
+    return [...this._currentItems, ...this._items_new];
   }
 
   get(page = 1) {
@@ -207,6 +221,13 @@ export const userCourses = {
   get() {
     this.resources.selections.get();
     this.resources.signups.get();
+  },
+
+  get all() {
+    return [].concat(
+      this.resources.selections.list,
+      this.resources.signups.list,
+    );
   },
 
   get selected() {
