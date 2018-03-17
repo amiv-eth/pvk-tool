@@ -33,6 +33,7 @@ def login(username, password):
 
 def post(resource, data, token):
     """Create something, ignoring auth."""
+    print('%s/%s' % (PVK_DEV_URL, resource))
     response = requests.post('%s/%s' % (PVK_DEV_URL, resource),
                              json=data,
                              headers={'Authorization': token})
