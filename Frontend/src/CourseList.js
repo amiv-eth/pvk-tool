@@ -3,6 +3,7 @@
 
 import m from 'mithril';
 import { courses, userCourses } from './backend';
+import SidebarCard from './components/SidebarCard';
 
 function isSelectedOrReserved(course) {
   return userCourses.selected.some(sel => sel.course === course._id) ||
@@ -51,6 +52,11 @@ function displayCourses(coursesList) {
 }
 
 
+export const icons = {
+  ArrowRight: '<svg fill="#000000" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"/><path d="M0-.25h24v24H0z" fill="none"/></svg>',
+  ArrowDown: '<svg fill="#000000" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7.41 7.84L12 12.42l4.59-4.58L18 9.25l-6 6-6-6z"/><path d="M0-.75h24v24H0z" fill="none"/></svg>',
+};
+
 // Choose itet oder mavt
 const selectedDepartment = 'mavt';
 
@@ -75,13 +81,60 @@ function getUniqueLecturesByYear(courseList, year) {
     .filter(onlyUnique);
 }
 
+
+function dateFormatterStart(datestring) {
+  // converts an API datestring into the standard format Mon 30/01/1990, 10:21
+  if (!datestring) return '';
+  const date = new Date(datestring);
+  return date.toLocaleString('en-GB', {
+    weekday: 'short',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function dateFormatterEnd(datestring) {
+  // converts an API datestring into the standard format 10:21
+  if (!datestring) return '';
+  const date = new Date(datestring);
+  return date.toLocaleString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function displayCard(course) {
+  return m(SidebarCard, {
+    title: `Assistant: ${course.assistant}`,
+    subtitle: `Room: ${course.room}`,
+    content:
+      m('ul', course.datetimes.map(timeslot =>
+        m('li', [dateFormatterStart(timeslot.start), '  - ',
+          dateFormatterEnd(timeslot.end)]))),
+    action() { userCourses.select(course._id); },
+    actionName: 'Add',
+  });
+}
+
+
 class expandableContent {
   static view(vnode) {
     return [
       m(
-        'button',
-        { onclick() { vnode.state.expanded = !vnode.state.expanded; } },
-        vnode.attrs.name,
+        'div',
+        {
+          onclick() {
+            vnode.state.expanded = !vnode.state.expanded;
+          },
+        },
+        m(
+          `h${vnode.attrs.level + 1}`,
+          [vnode.state.expanded ? m.trust(icons.ArrowDown) : m.trust(icons.ArrowRight),
+            vnode.attrs.name],
+        ),
       ),
       vnode.state.expanded ? vnode.children : [],
     ];
@@ -96,14 +149,14 @@ export default class CourseList {
   static view() {
     const coursesFilteredByDepartment = coursesByDeparment(courses.list, selectedDepartment);
     return getUniqueYears(coursesFilteredByDepartment).map(year =>
-      m(expandableContent, { name: year }, [
+      m(expandableContent, { name: `Year ${year}`, level: 0 }, [
         getUniqueLecturesByYear(coursesFilteredByDepartment, year).map(lecture =>
           m(
             expandableContent,
-            { name: lecture },
-            displayCourses(coursesFilteredByDepartment
+            { name: lecture, level: 1 },
+            coursesFilteredByDepartment
               .filter(course => course.lecture.year === year)
-              .filter(course => course.lecture.title === lecture)),
+              .filter(course => course.lecture.title === lecture).map(displayCard),
           ))]));
   }
 }
