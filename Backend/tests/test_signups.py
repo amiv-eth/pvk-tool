@@ -32,19 +32,11 @@ def test_success(app):
 
         assert signup_response['status'] == 'reserved'
 
-        # Now pay
-        payment = {
-            'signups': [signup_response['_id']]
-        }
-        app.client.post('/payments',
-                        data=payment,
-                        assert_status=201)
-
         # Check signup
         updated_signup = app.client.get('/signups/' + signup_response['_id'],
                                         assert_status=200)
 
-        assert updated_signup['status'] == 'accepted'
+        assert updated_signup['status'] == 'reserved'
 
 
 def test_zero_spots(app):

@@ -31,7 +31,9 @@ from backend.signups import (
     patched_course,
     block_course_deletion,
     mark_as_paid,
+    mark_as_unpaid,
 )
+from backend.payments import create_payment
 
 
 def create_app(config_file=None, **kwargs):
@@ -85,7 +87,9 @@ def create_app(config_file=None, **kwargs):
     application.on_updated_courses += patched_course
     application.on_delete_item_courses += block_course_deletion
 
+    application.on_insert_payments += create_payment
     application.on_inserted_payments += mark_as_paid
+    application.on_deleted_item_payments += mark_as_unpaid
 
     return application
 

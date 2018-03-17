@@ -45,12 +45,9 @@ def test_create(app):
             'nethz': "Pablito",
             'course': course_response['_id']
         }
-        signup_response = app.client.post('signups',
-                                          data=signup,
-                                          assert_status=201)
-
-        payment = {'signups': [signup_response['_id']]}
-        app.client.post('payments', data=payment, assert_status=201)
+        app.client.post('signups',
+                        data=signup,
+                        assert_status=201)
 
 
 def test_no_double_signup(app):

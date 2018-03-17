@@ -134,10 +134,31 @@ def update_signups(course_id):
 
 def mark_as_paid(payments):
     """After successful payment, set status to `accepted`."""
+    # Check if payments is not a list
+    if not isinstance(payments, list):
+        payments = [payments]
+
     for payment in payments:
 
         for signup in payment['signups']:
             data = {'status': 'accepted'}
+            patch_internal('signups',
+                           _id=str(signup),
+                           payload=data,
+                           concurrency_check=False,
+                           skip_validation=True)
+
+
+def mark_as_unpaid(payments):
+    """Before a payment is deleted, set status to `reserved`."""
+    # Check if payments is not a list
+    if not isinstance(payments, list):
+        payments = [payments]
+
+    for payment in payments:
+
+        for signup in payment['signups']:
+            data = {'status': 'reserved'}
             patch_internal('signups',
                            _id=str(signup),
                            payload=data,

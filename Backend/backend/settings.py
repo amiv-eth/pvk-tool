@@ -35,6 +35,15 @@ RESOURCE_METHODS = ['GET', 'POST']
 ITEM_METHODS = ['GET', 'PATCH', 'DELETE']
 
 
+# Stripe API Key
+# TODO: Not a good idea to keep this in the repo
+STRIPE_API_KEY = 'sk_test_KUiZO8E2VKGMmm94u4t5YPnL'
+
+
+# Price per course in "rappen"
+COURSE_PRICE = 1000
+
+
 # ISO 8601 time format instead of rfc1123
 DATE_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 
@@ -217,11 +226,17 @@ DOMAIN = {
     },
 
     'payments': {
-        # Dummy endpoint for payments.
-        # TODO: Implement as soon as PSP is known.
+        # Endpoint for payments via Stripe.
+
+        # charge_id is a unique identifier which allows us to track the payment with Stripe
+        # Admins can however create payments without a charge_id
 
         # Only admins can delete payments
-        'user_methods': ['GET', 'POST', 'PATCH'],
+        # Also, there is no reason to ever change a payment.
+        'user_methods': ['GET', 'POST'],
+
+        # Bulk inserts don't make sense here, so we disallow them
+        'bulk_enabled': False,
 
         'schema': {
             'signups': {
@@ -233,11 +248,32 @@ DOMAIN = {
                         'field': '_id',
                         'embeddable': True
                     },
-                    # TODO: No duplicate entries
-                    # TODO: No courses on waiting list
+                    'no_waiting': True, # No signups on waiting list
+                    'no_accepted': True, # No signups which have already been paid
                 },
+                'no_copies': True,
                 'required': True,
                 'nullable': False,
+            },
+            # Admins may leave this field empty
+            # However, it still has to be sent, even if it contains an empty string / None
+            'token': {
+                'type': 'string',
+                'unique': True,
+                'required': True,
+                'nullable': True,
+                'only_admin_empty': True,
+            },
+            'charge_id': { # Set by backend
+                'type': 'string',
+                'unique': True,
+                'required': False,
+                'nullable': True,
+            },
+            'amount': { # Set by backend
+                'type': 'integer',
+                'required': False,
+                'nullable': True,
             }
         }
     }
