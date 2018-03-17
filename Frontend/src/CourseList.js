@@ -7,7 +7,9 @@ function isSelectedOrReserved(course) {
 }
 
 export default class CourseList {
-  static oninit() { courses.getAll(); }
+  static oninit() {
+    courses.getAll();
+  }
 
   static view() {
     return m('table', [

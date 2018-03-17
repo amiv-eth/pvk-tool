@@ -4,50 +4,31 @@ A new AMIV PVK tool using Eve and authenticating users with AMIVAPI.
 
 ## Frontend
 
-1. [Install Docker](https://www.docker.com/community-edition#/download)
-   (Make sure to verify your installation!)
+The frontend is build using [mithril](https://mithril.js.org) and uses
+the [webpack build system](https://webpack.js.org).
 
-2. You need MongoDB. Luckily, you can just use Docker for that, too.
-   (It's one long command, make sure to copy everything to your command line)
-  
-   ```bash
-   docker run --name mongodb -d -p 27017 \
-     -e MONGODB_DATABASE="pvk" \
-     -e MONGODB_USERNAME="pvkuser" \
-     -e MONGODB_PASSWORD="pvkpass" \
-     bitnami/mongodb:latest
-   ```
-  
-   The environment variables specified with `-e` make sure that the db and user
-   are created
+In order to bundle all files and use the development server, you first
+need to install [node](https://nodejs.org/) and[npm](https://www.npmjs.com).
 
-3. Start the dev-container
-
-   ```bash
-   docker run --name pvk -d -p 80:8080 \
-     --link mongodb \
-     -e MONGO_HOST="mongodb" \
-     amiveth/pvk-backend
-   ```
-
-   The `--link` and `-e` make sure the backend can access the db container.
-
-And now the backend is available at port 80, ready to use!
-
-4. Create some demo data
+Afterwards, you can use the following commands:
 
 ```bash
-python Backend/create_demo_data.py alex_itet_admin pvk
+# Install dependencies and build system
+npm install
+
+# Start development server
+# (As soon as its running, open `localhost:9000` in your browser)
+npm start
+
+# The development server reloads if you change anything, if it does not, use:
+sudo npm start
+
+# Check coding style
+npm run lint
+
+# Bundle files for production
+npm run build
 ```
-
-5. Now to the frontend: Install `node` and `npm`
-   Inside the `Frontend` directory, fist install the build and dependencies
-   with `npm install` and then start the dev server with `npm start`
-   (the dev server will reload whenever you change anything. If it does not
-   try `sudo npm start`)
-
-   Now, in your browser, open `localhost:9000`
-
 
 ## Backend
 
@@ -116,3 +97,9 @@ But don't worry, it's very easy to set them up -- take a look at the
   ```bash
   curl -X POST -Fusername <user> -Fpassword <pass> amiv-api.ethz.ch/sessions
   ```
+
+### Development server reset
+
+We have a development server running. The script `reset_development_server.py`
+completely resets its data. (Everything gets deleted and re-created)
+Install `requests` (e.g. using `pip install requests`) to use it.

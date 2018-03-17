@@ -1,8 +1,9 @@
 """Demo Data.
 
-This script can be used to create demo data on the development server.
+This script can be used to reset the demo data on the development server.
+You need to have 'requests' installed!
 
-TODO: Accept user and password from command line, provide output
+CAREFUL: This script will delete everything existing!
 """
 
 import sys
@@ -10,11 +11,12 @@ from random import randint
 from datetime import datetime as dt, timedelta
 import requests
 
+
 AMIVAPI_DEV_URL = "https://amiv-api.ethz.ch"
 PVK_DEV_URL = 'http://pvk-api-dev.amiv.ethz.ch'
 
 DATE_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
-ASSISTANTS = ['pablo', 'assi', 'anon', 'mongo']
+ASSISTANTS = ['pablo', 'assi', 'anon']
 MIN_SPOTS = 20
 MAX_SPOTS = 40
 
@@ -81,10 +83,12 @@ def time_gen(starting_day):
         month = starting_day.month
         day = starting_day.day
 
-        # Random start and end time
-        start = dt(year, month, day, randint(7, 10)).strftime(DATE_FORMAT)
-        end = dt(year, month, day, randint(11, 14)).strftime(DATE_FORMAT)
-        yield {'start': start, 'end': end}
+        # Always create pairs of courses that overlap (for testing)
+        for _ in range(2):
+            # Random start and end time
+            start = dt(year, month, day, randint(7, 10)).strftime(DATE_FORMAT)
+            end = dt(year, month, day, randint(11, 14)).strftime(DATE_FORMAT)
+            yield {'start': start, 'end': end}
 
         # Only one slot per day to avoid overlap
         starting_day += timedelta(days=1)
@@ -113,7 +117,9 @@ def create_course(lecture, assistant, token, open_signup=True):
         'room': next(ROOM),
         'spots': randint(MIN_SPOTS, MAX_SPOTS),
     }
-    return post('courses', data, token)
+    response = post('courses', data, token)
+
+    return response
 
 
 def create_signups(course, token):
@@ -121,9 +127,27 @@ def create_signups(course, token):
     for ind in range(randint(0, 2*MAX_SPOTS)):
         data = {
             'nethz': 'student%d' % ind,
-            'course': course
+            'course': course['_id'],
         }
         post('signups', data, token)
+
+
+def clear(resource, token):
+    """ Remove every item."""
+    while True:
+        items = requests.get('%s/%s' % (PVK_DEV_URL, resource),
+                             headers={'Authorization': token}).json()['_items']
+
+        if not items:
+            return  # Done!
+
+        for item in items:
+            item_url = '%s/%s/%s' % (PVK_DEV_URL, resource, item['_id'])
+            res = requests.delete(item_url,
+                                  headers={'Authorization': token,
+                                           'If-Match': item['_etag']})
+            if res.status_code != 204:
+                print(res.json())
 
 
 def main():
@@ -134,6 +158,12 @@ def main():
 
     print('Logging in...')
     token = login(sys.argv[1], sys.argv[2])
+
+    # Order is important! some things can't be deleted before others
+    print('Clearing existing data...')
+    for res in ['payments', 'signups', 'courses', 'selections', 'lectures']:
+        print('Removing %s...' % res)
+        clear(res, token)
 
     # Create courses
     # (Repeat for itet and mavt)
@@ -149,11 +179,11 @@ def main():
                 create_course(lecture, ASSISTANTS[ind],
                               token, open_signup=False)
 
-        print('Creating courses with closed signup...')
+        print('Creating courses with open signup...')
         courses = []
         for lecture in lectures:
             for ind in range(randint(2, len(ASSISTANTS))):
-                courses.append(create_course(lecture, token, ASSISTANTS[ind]))
+                courses.append(create_course(lecture, ASSISTANTS[ind], token))
 
         print('Creating signups...')
         for course in courses:
