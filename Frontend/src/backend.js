@@ -3,7 +3,7 @@
 import m from 'mithril';
 import session from './session';
 
-const pvkApiUrl = `//${window.location.hostname}/api`;
+const pvkApiUrl = `//${window.location.hostname}`;
 
 // Helper to filter temp out of list
 function withoutTemp(list, temp) { return list.filter(item => item !== temp); }

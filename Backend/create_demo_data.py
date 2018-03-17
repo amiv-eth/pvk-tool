@@ -11,7 +11,7 @@ from datetime import datetime as dt, timedelta
 import requests
 
 AMIVAPI_DEV_URL = "https://amiv-api.ethz.ch"
-PVK_DEV_URL = 'http://localhost:8080'  # 'http://pvk-api-dev.amiv.ethz.ch'
+PVK_DEV_URL = 'http://localhost:80'  # 'http://pvk-api-dev.amiv.ethz.ch'
 
 DATE_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 ASSISTANTS = ['pablo', 'assi', 'anon', 'mongo']

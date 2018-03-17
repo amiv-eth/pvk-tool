@@ -4,7 +4,50 @@ A new AMIV PVK tool using Eve and authenticating users with AMIVAPI.
 
 ## Frontend
 
-WIP.
+1. [Install Docker](https://www.docker.com/community-edition#/download)
+   (Make sure to verify your installation!)
+
+2. You need MongoDB. Luckily, you can just use Docker for that, too.
+   (It's one long command, make sure to copy everything to your command line)
+  
+   ```bash
+   docker run --name mongodb -d -p 27017 \
+     -e MONGODB_DATABASE="pvk" \
+     -e MONGODB_USERNAME="pvkuser" \
+     -e MONGODB_PASSWORD="pvkpass" \
+     bitnami/mongodb:latest
+   ```
+  
+   The environment variables specified with `-e` make sure that the db and user
+   are created
+
+3. Start the dev-container
+
+   ```bash
+   docker run --name pvk -d -p 80:8080 \
+     --link mongodb \
+     -e MONGO_HOST="mongodb" \
+     amiveth/pvk-backend
+   ```
+
+   The `--link` and `-e` make sure the backend can access the db container.
+
+And now the backend is available at port 80, ready to use!
+
+4. Create some demo data
+
+```bash
+python Backend/create_demo_data.py alex_itet_admin pvk
+```
+
+5. Now to the frontend: Install `node` and `npm`
+   Inside the `Frontend` directory, fist install the build and dependencies
+   with `npm install` and then start the dev server with `npm start`
+   (the dev server will reload whenever you change anything. If it does not
+   try `sudo npm start`)
+
+   Now, in your browser, open `localhost:9000`
+
 
 ## Backend
 
