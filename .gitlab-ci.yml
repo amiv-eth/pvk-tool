@@ -80,7 +80,7 @@ backend_deploy:
     SSH_DEPLOY_KEY: $DEPLOY_PRIVATE_KEY
 
   script:
-    - ssh $DEPLOY_HOST "docker pull $CI_REGISTRY_IMAGE_BACKEND; docker service update --force $DEPLOY_SERVICE_BACKEND;"
+    - ssh -4 $DEPLOY_HOST "docker pull $CI_REGISTRY_IMAGE_BACKEND; docker service update --force $DEPLOY_SERVICE_BACKEND;"
 
   only:
     - master

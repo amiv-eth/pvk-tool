@@ -16,15 +16,16 @@ X_DOMAINS = '*'
 X_HEADERS = ['Authorization', 'If-Match', 'If-Modified-Since', 'Content-Type']
 
 # AMIVAPI URL and Admin Group
-AMIVAPI_URL = environ.get('AMIVAPI_URL', 'https://amiv-api.ethz.ch')
-ADMIN_GROUP_NAME = environ.get('AMIVAPI_GROUP', 'PVK Admins')
+AMIVAPI_URL = 'https://amiv-api.ethz.ch'
+ADMIN_GROUP_NAME = 'PVK Admins'
 
-# DB
+# DB (can be set by env for easier CI tests)
 MONGO_HOST = environ.get('MONGO_HOST', 'localhost')
 MONGO_PORT = environ.get('MONGO_PORT', 27017)
 MONGO_DBNAME = environ.get('MONGO_DBNAME', 'pvk')
 MONGO_USERNAME = environ.get('MONGO_USERNAME', 'pvkuser')
 MONGO_PASSWORD = environ.get('MONGO_PASSWORD', 'pvkpass')
+
 
 # Only JSON, simplifies hooks
 XML = False

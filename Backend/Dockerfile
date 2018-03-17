@@ -6,7 +6,7 @@ WORKDIR /pvk
 # API will run on port 80
 EXPOSE 8080
 # Environment variable for config, use path for docker secrets as default
-ENV pvk_CONFIG=/run/secrets/pvk_config
+ENV PVK_CONFIG=/run/secrets/pvk_config
 
 # Install bjoern and dependencies for install (we need to keep libev)
 RUN apk add --no-cache --virtual .deps \

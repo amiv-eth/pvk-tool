@@ -11,7 +11,7 @@ from datetime import datetime as dt, timedelta
 import requests
 
 AMIVAPI_DEV_URL = "https://amiv-api.ethz.ch"
-PVK_DEV_URL = 'http://localhost:80'  # 'http://pvk-api-dev.amiv.ethz.ch'
+PVK_DEV_URL = 'http://pvk-api-dev.amiv.ethz.ch'
 
 DATE_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 ASSISTANTS = ['pablo', 'assi', 'anon', 'mongo']
@@ -113,7 +113,7 @@ def create_course(lecture, assistant, token, open_signup=True):
         'room': next(ROOM),
         'spots': randint(MIN_SPOTS, MAX_SPOTS),
     }
-    return post('courses', data, token)['_id']
+    return post('courses', data, token)
 
 
 def create_signups(course, token):

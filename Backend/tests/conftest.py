@@ -127,7 +127,7 @@ def admin(self, **kwargs):
 @pytest.fixture
 def app():
     """Create app, instantiate test client, drop DB after use."""
-    application = create_app(settings=TEST_SETTINGS)
+    application = create_app(**TEST_SETTINGS)
     application.test_client_class = TestClient
     application.client = application.test_client()
 

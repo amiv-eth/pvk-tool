@@ -17,7 +17,8 @@ Next, you should check out the following files:
 
 """
 
-from os import getcwd
+from os import getcwd, getenv
+from os.path import abspath
 from eve import Eve
 from flask import Config
 
@@ -33,19 +34,40 @@ from backend.signups import (
 )
 
 
-def create_app(settings=None):
-    """Super simply bootstrapping for easier testing.
+def create_app(config_file=None, **kwargs):
+    """Create a new eve app object and initialize everything.
 
-    Initial settings are loaded from settings.py (the Flask `Config` object
-    makes this easy) and updated settings from the function call, if provided.
+    User configuration can be loaded in the following order:
+
+    1. Use the `config_file` arg to specify a file
+    2. If `config_file` is `None`, you set the environment variable
+       `PVK_CONFIG` to the path of your config file
+    3. If no environment variable is set either, `config.py` in the current
+       working directory is used
+
+    Args:
+        config (path): Specify config file to use.
+        kwargs: All other key-value arguments will be used to update the config
+    Returns:
+        (Eve): The Eve application
     """
+    # Load config
     config = Config(getcwd())
-    config.from_object('backend.settings')
-    if settings is not None:
-        config.update(settings)
+    config.from_object("backend.settings")
+
+    # Specified path > environment var > default path; abspath for better log
+    user_config = abspath(config_file or getenv('PVK_CONFIG', 'config.py'))
+    try:
+        config.from_pyfile(user_config)
+        config_status = "Config loaded: %s" % user_config
+    except IOError:
+        config_status = "No config found."
+
+    config.update(kwargs)
 
     # Create the app object
     application = Eve(auth=APIAuth, validator=APIValidator, settings=config)
+    application.logger.info(config_status)
 
     # Eve provides hooks at several points of the request,
     # we use this do add dynamic filtering
