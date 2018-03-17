@@ -8,7 +8,7 @@
     "start": "webpack-dev-server --hot --inline",
     "build": "webpack -p --config webpack.config.prod.js",
     "server": "webpack-dev-server",
-    "lint": "eslint src/**",
+    "lint": "eslint src/**.js",
     "lint-fix": "eslint --fix src/**"
   },
   "author": "AMIV IT team",
