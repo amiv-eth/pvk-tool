@@ -4,6 +4,7 @@
 // Includes the generic login / logout
 
 import m from 'mithril';
+import { Dialog } from 'polythene-mithril';
 import session from './session';
 
 import './layout.css';
@@ -102,6 +103,7 @@ export default class Layout {
       m('header', m(SidebarHeader)),
       m('aside', m(vnode.attrs.sidebar)),
       m('main', m(vnode.attrs.content)),
+      m(Dialog),
     ] : m(LoginPage);
   }
 }

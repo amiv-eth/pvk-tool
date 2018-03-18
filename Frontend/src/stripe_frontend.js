@@ -1,5 +1,6 @@
 // Stripe Frontend Script
 import m from 'mithril';
+import { Dialog } from 'polythene-mithril';
 import { userCourses, pvkApiUrl } from './backend';
 import session from './session';
 
@@ -24,7 +25,25 @@ const handler = StripeCheckout.configure({
         Authorization: `Token ${session.data.token}`,
       },
     }).then(() => {
+      // TODO: This only sometimes works
+      // Update the sidebar
       userCourses.getAll();
+      // Show a confirmation dialog
+      Dialog.show({
+        title: 'Thanks for your payment!',
+        body: 'You will receive a confirmation e-mail within the next few minutes.',
+      });
+    }).catch((err) => {
+      // Show an error dialog
+      const title = err.code === 500 ? 'Server error' : 'Payment failed';
+
+      // show the backend's error message
+      const res = JSON.parse(err.message);
+
+      Dialog.show({
+        title,
+        body: res._error.message,
+      });
     });
   },
 });
