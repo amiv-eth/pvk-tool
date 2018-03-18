@@ -1,8 +1,10 @@
 // Api calls
 
 import m from 'mithril';
+import { Dialog } from 'polythene-mithril';
 import session from './session';
 import handler from './stripe_frontend';
+
 
 // Development URL
 export const pvkApiUrl = 'http://pvk-api-dev.amiv.ethz.ch';
@@ -275,19 +277,24 @@ export const userCourses = {
     // TODO: Provide error feedback to user
   },
 
-  // TODO: Implement
   pay() {
-    // TODO: Check if reserved Courses are empty, so that you don't pay for 0 courses
     // Get how many courses are reserved to calculate the amount
     const rescourses = userCourses.reserved.length;
-    // Open Checkout with further options:
-    handler.open({
-      name: 'AMIV PVK',
-      description: 'Prüfungsvorbereitungskurs',
-      zipCode: false,
-      amount: 1000 * rescourses,
-      currency: 'CHF',
-    });
+    // Check if reserved Courses are empty, so that you don't pay for 0 courses
+    if (rescourses >= 1) {
+      // Open Checkout with further options:
+      handler.open({
+        name: 'AMIV PVK',
+        zipCode: false,
+        amount: 1000 * rescourses,
+        currency: 'CHF',
+      });
+    } else {
+      Dialog.show({
+        title: 'You have no reserved courses!',
+        body: 'Please select courses and wait until your courses are reserved before you pay.',
+      });
+    }
   },
 };
 
