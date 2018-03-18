@@ -2,6 +2,7 @@
 
 import m from 'mithril';
 import session from './session';
+import handler from './stripe_frontend';
 
 const pvkApiUrl = `//${window.location.hostname}`;
 
@@ -269,7 +270,20 @@ export const userCourses = {
   },
 
   // TODO: Implement
-  pay() {},
+ 
+  pay() {
+    // TODO: Check if reserved Courses are empty, so that you don't pay for 0 courses
+    // Get how many courses are reserved to calculate the amount
+    const rescourses = userCourses.reserved.length;
+    // Open Checkout with further options:
+    handler.open({
+      name: 'AMIV PVK',
+      description: 'Prüfungsvorbereitungskurs',
+      zipCode: false,
+      amount: 1000 * rescourses,
+      currency: 'CHF',
+    });
+  },
 };
 
 export const courses = new Resource('courses', { embedded: { lecture: 1 } });
