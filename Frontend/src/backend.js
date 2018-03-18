@@ -5,7 +5,7 @@ import session from './session';
 import handler from './stripe_frontend';
 
 // Development URL
-const pvkApiUrl = 'http://pvk-api-dev.amiv.ethz.ch';
+export const pvkApiUrl = 'http://pvk-api-dev.amiv.ethz.ch';
 
 // Helper to filter temp out of list
 function withoutTemp(list, temp) { return list.filter(item => item !== temp); }
@@ -210,6 +210,11 @@ export const userCourses = {
     this.resources.signups.get();
   },
 
+  getAll() {
+    this.resources.selections.getAll();
+    this.resources.signups.getAll();
+  },
+
   get selected() {
     return this.resources.selections.list;
   },
@@ -271,7 +276,6 @@ export const userCourses = {
   },
 
   // TODO: Implement
- 
   pay() {
     // TODO: Check if reserved Courses are empty, so that you don't pay for 0 courses
     // Get how many courses are reserved to calculate the amount

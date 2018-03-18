@@ -1,6 +1,7 @@
 // Stripe Frontend Script
 import m from 'mithril';
 import { userCourses, pvkApiUrl } from './backend';
+import session from './session';
 
 
 const handler = StripeCheckout.configure({
@@ -14,11 +15,13 @@ const handler = StripeCheckout.configure({
     // Get the token ID to your server-side code for use.
     m.request({
       method: 'POST',
-      url: ':pvkApiUrl/payments',
+      url: `${pvkApiUrl}/payments`,
       data: {
-        pvkApiUrl,
         signups: userCourses.reserved.map(signup => signup._id),
         token: token.id,
+      },
+      headers: {
+        Authorization: `Token ${session.data.token}`,
       },
     }).then(() => {
       userCourses.getAll();
