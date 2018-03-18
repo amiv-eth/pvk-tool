@@ -4,8 +4,8 @@ import { userCourses, courses } from './backend';
 import SidebarCard from './components/SidebarCard';
 
 
-class CourseView {
-  static view({ attrs: { /* _id, */ courseId, remove } }) {
+class CourseViewDeletable {
+  static view({ attrs: { courseId, remove } }) {
     // Get Lecture of Course
     const course = courses.items[courseId];
     // Otherwise display loading
@@ -14,18 +14,20 @@ class CourseView {
         title: course.lecture.title,
         subtitle: [course.assistant, ' - ', course.room],
         actionName: 'X',
-        action() { remove(); },
+        action: remove,
       });
     }
     return m(SidebarCard, {
       title: 'Loading ...',
     });
-    /* m('li', [
-      m('span', course ? course.lecture.title : 'Loading...'),
-      // If there is no id, the element is not yet created,
-      // so a delete button does not make any sense
-      m('button', { onclick: remove, disabled: !_id }, 'X'),
-    ]); */
+  }
+}
+
+
+class CourseView {
+  static view({ attrs: { courseId } }) {
+    // Same as deletable course view, but without action
+    return m(CourseViewDeletable, { courseId });
   }
 }
 
@@ -40,7 +42,7 @@ export default class UserSidebar {
         content: userCourses.selected.length ? [
           userCourses.selected.map(({ _id, course: courseId }) =>
             m(
-              CourseView,
+              CourseViewDeletable,
               { _id, courseId, remove() { userCourses.deselect(_id); } },
             )),
         ] : 'No courses selected.',
@@ -52,7 +54,7 @@ export default class UserSidebar {
         title: 'Waiting List',
         content: userCourses.waiting.map(({ _id, course: courseId }) =>
           m(
-            CourseView,
+            CourseViewDeletable,
             { _id, courseId, remove() { userCourses.free(_id); } },
           )),
       }),
@@ -63,17 +65,24 @@ export default class UserSidebar {
         content: userCourses.reserved.length ? [
           userCourses.reserved.map(({ _id, course: courseId }) =>
             m(
-              CourseView,
+              CourseViewDeletable,
               { _id, courseId, remove() { userCourses.free(_id); } },
             )),
         ] : 'No courses reserved.',
         action() { userCourses.pay(); },
         actionName: 'pay',
+        actionActive: userCourses.reserved.length > 0,
       }),
 
       m(SidebarCard, {
         title: 'Accepted Courses',
-        content: 'No courses accepted.',
+        content: userCourses.accepted.length ? [
+          userCourses.accepted.map(({ course: courseId }) =>
+            m(
+              CourseView,
+              { courseId },
+            )),
+        ] : 'No courses accepted.',
       }),
     ];
   }

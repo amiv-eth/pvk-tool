@@ -1,17 +1,15 @@
 // Api calls
 
 import m from 'mithril';
+import { pvkApiUrl } from 'config';
 import session from './session';
-
-// Development URL
-const pvkApiUrl = 'http://pvk-api-dev.amiv.ethz.ch';
+import handler from './stripe';
 
 // Helper to filter temp out of list
 function withoutTemp(list, temp) { return list.filter(item => item !== temp); }
 
-
 // Request to the PVK backend
-function request({
+export function request({
   resource,
   method = 'GET',
   id = '',
@@ -223,6 +221,11 @@ export const userCourses = {
     this.resources.signups.get();
   },
 
+  getAll() {
+    this.resources.selections.getAll();
+    this.resources.signups.getAll();
+  },
+
   get all() {
     return [].concat(
       this.resources.selections.list,
@@ -290,8 +293,15 @@ export const userCourses = {
     // TODO: Provide error feedback to user
   },
 
-  // TODO: Implement
-  pay() {},
+  pay() {
+    // Trigger Stripe Checkout
+    handler.open({
+      name: 'AMIV PVK',
+      zipCode: false,
+      amount: 1000 * userCourses.reserved.length,
+      currency: 'CHF',
+    });
+  },
 };
 
 export const courses = new Resource('courses', { embedded: { lecture: 1 } });

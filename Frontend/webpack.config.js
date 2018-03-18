@@ -51,6 +51,12 @@ const config = {
   },
 
   devtool: 'eval-source-map', // Default development sourcemap
+
+  resolve: {
+    alias: {
+      config: `${__dirname}/config.js`,
+    },
+  },
 };
 
 module.exports = config;

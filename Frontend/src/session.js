@@ -2,9 +2,7 @@
 
 import m from 'mithril';
 import ls from 'local-storage';
-
-const adminGroupName = 'PVK Admins';
-const amivApiUrl = 'https://amiv-api.ethz.ch';
+import { amivApiUrl, adminGroupName } from 'config';
 
 const storedSession = ls('session');
 
