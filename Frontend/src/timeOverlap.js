@@ -1,33 +1,44 @@
 /* eslint-disable no-param-reassign */
 
-import m from 'mithril';
-// import { courses, userCourses } from './backend';
 import { courses } from './backend';
 
 function getCourseObject(courseId) {
+  // returns course object for given courseId
   if (courses.items[courseId]) { return courses.items[courseId]; }
   return [];
 }
 
 
-export default function isOverlapping(selectedCourseList, newCourse) {
-  // console.log(selectedCourseList);
-  if (selectedCourseList === undefined) { return 0; }
+export default function isOverlapping(sidebarCourseList, newCourse) {
+  // Checks for each newCourse for a time overlapping with the sidebar Course List
+  if (sidebarCourseList === undefined) { return 0; }
   let result = 0;
-  selectedCourseList.forEach((selectedCourse) => {
-    // console.log(getCourseObject(selectedCourse.course));
+  sidebarCourseList.forEach((selectedCourse) => {
     getCourseObject(selectedCourse.course).datetimes.forEach((datetime) => {
       newCourse.datetimes.forEach((newDatetime) => {
-        // console.log(Date.parse(newDatetime.start));
-        if (((Date.parse(newDatetime.start) > Date.parse(datetime.start)
-            && Date.parse(newDatetime.start) < Date.parse(datetime.end))
-            || (Date.parse(newDatetime.end) > Date.parse(datetime.start)
-            && Date.parse(newDatetime.end) < Date.parse(datetime.end)))) {
+        // check if start time of newCourse is between any course from sidebar Course List
+        if (Date.parse(newDatetime.start) >= Date.parse(datetime.start)
+            && Date.parse(newDatetime.start) <= Date.parse(datetime.end)) {
+          result += 1;
+        }
+        // check if end time of newCourse is between any course from sidebar Course List
+        if ((Date.parse(newDatetime.end) > Date.parse(datetime.start)
+            && Date.parse(newDatetime.end) <= Date.parse(datetime.end))) {
+          result += 1;
+        }
+        // check if newCourse contains any course from sidebar Course List
+        if ((Date.parse(newDatetime.start) < Date.parse(datetime.start)
+            && Date.parse(newDatetime.end) > Date.parse(datetime.end))) {
+          result += 1;
+        }
+        // check if newCourse is contained by any course from sidebar Course List
+        if ((Date.parse(newDatetime.start) > Date.parse(datetime.start)
+            && Date.parse(newDatetime.end) < Date.parse(datetime.end))) {
           result += 1;
         }
       });
     });
   });
-  console.log(result);
   return result;
 }
+

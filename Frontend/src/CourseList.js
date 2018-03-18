@@ -5,11 +5,15 @@ import m from 'mithril';
 import { courses, userCourses } from './backend';
 import SidebarCard from './components/SidebarCard';
 import isOverlapping from './timeOverlap';
+// To test the existence of data
+// import isExistentialCrisisHappening from './Testing';
 
+/*
 function isSelectedOrReserved(course) {
   return userCourses.selected.some(sel => sel.course === course._id) ||
     userCourses.signups.some(signup => signup.course === course._id);
 }
+
 
 function displayCourses(coursesList) {
   return m('table', [
@@ -51,17 +55,19 @@ function displayCourses(coursesList) {
       ]))),
   ]);
 }
-
+*/
 
 export const icons = {
+  // html arrows for expandable content
   ArrowRight: '<svg fill="#000000" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"/><path d="M0-.25h24v24H0z" fill="none"/></svg>',
   ArrowDown: '<svg fill="#000000" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7.41 7.84L12 12.42l4.59-4.58L18 9.25l-6 6-6-6z"/><path d="M0-.75h24v24H0z" fill="none"/></svg>',
 };
 
-// Choose itet oder mavt
+// choose itet oder mavt
 const selectedDepartment = 'mavt';
 
 function coursesByDeparment(coursesList, department) {
+  // returns list of filtered courseList by department
   return coursesList.filter(c => Boolean(c.lecture)).filter(course =>
     course.lecture.department === department);
 }
@@ -75,6 +81,7 @@ function getUniqueYears(courseList) {
 }
 
 function getUniqueLecturesByYear(courseList, year) {
+  // return list of unique lecutres for given year
   return courseList
     .filter(course => course.lecture.year === year)
     .map(course => course.lecture.title)
@@ -108,25 +115,40 @@ function dateFormatterEnd(datestring) {
 }
 
 function displayCard(course) {
+  // returns SidebarCard for given course
   const attributes = {
-    title: `Assistant: ${course.assistant}`,
+    title: `Assistent: ${course.assistant}`,
     subtitle: `Room: ${course.room}`,
     content:
       m('ul', course.datetimes.map(timeslot =>
         m('li', [dateFormatterStart(timeslot.start), '  - ',
           dateFormatterEnd(timeslot.end)]))),
   };
-  if (isOverlapping(userCourses.selected, course) === 0) {
+
+  // get lists for selected courses, waiting courses and reserverd courses
+  const chosenUserCourses = userCourses.selected;
+  userCourses.waiting.forEach(element => chosenUserCourses.push(element));
+  userCourses.reserved.forEach(element => chosenUserCourses.push(element));
+
+  // allows adding course to selected courses, if no time collision
+  if (isOverlapping(chosenUserCourses, course) === 0) {
     attributes.action = () => {
       userCourses.select(course._id);
     };
     attributes.actionName = 'Add';
+  } else {
+    attributes.actionActive = false;
+    attributes.actounName = 'Time conflict';
+    attributes.content = [m('ul', course.datetimes.map(timeslot =>
+      m('li', [dateFormatterStart(timeslot.start), '  - ',
+        dateFormatterEnd(timeslot.end)]))), m('p', 'Time Conflict!')];
   }
   return m(SidebarCard, attributes);
 }
 
 
 class expandableContent {
+  // return object with state.expanded, state.level and state.name
   static view(vnode) {
     return [
       m(
@@ -148,10 +170,12 @@ class expandableContent {
 }
 
 export default class CourseList {
+  // get courses on initiating webpage
   static oninit() {
     courses.getAll();
   }
 
+  // draw the SidebarCard sorted by year and lecture.name filtered by department
   static view() {
     const coursesFilteredByDepartment = coursesByDeparment(courses.list, selectedDepartment);
     return getUniqueYears(coursesFilteredByDepartment).map(year =>
