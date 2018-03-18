@@ -1,5 +1,9 @@
 """Tests for basic requests to all resources as admin."""
 
+import pytest
+
+from backend.settings import DOMAIN
+
 
 def test_create(app):
     """Test creating everything as an admin user."""
@@ -99,3 +103,14 @@ def test_no_patch(app):
                                     data={'nethz': 'lalala'},
                                     assert_status=422)
         assert response["_issues"]["nethz"] == no_patch_error
+
+
+@pytest.mark.parametrize('resource', DOMAIN.keys())
+def test_no_batch_inserts(app, resource):
+    """Test that batch payments are disabled (Eve sends 400 in this case)."""
+    with app.admin():
+        list_data = [{}, {}]
+
+        app.client.post(resource,
+                        data=list_data,
+                        assert_status=400)

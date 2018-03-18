@@ -19,7 +19,7 @@ So we just put the provided token into g and see if the functions work.
 
 from flask import g
 
-from backend.security import get_user, get_nethz, is_admin
+from backend.security import get_user, is_admin
 
 
 def test_user_found(app, usertoken):
@@ -27,25 +27,15 @@ def test_user_found(app, usertoken):
     with app.app_context():
         g.token = usertoken
         assert get_user() is not None
-
-
-def test_nethz_found(app, usertoken):
-    """Test if a users nethz can be found with an api token."""
-    with app.app_context():
-        g.token = usertoken
-        assert get_nethz() is not None
+        # Assert that we get the required user data (nethz and membership)
+        assert get_user().get('nethz') is not None
+        assert get_user().get('membership') is not None
 
 
 def test_user_not_found(app):
     """Without token, user cannot be found."""
     with app.app_context():
         assert get_user() is None
-
-
-def test_nethz_not_found(app):
-    """Without token, users nethz cannot be found."""
-    with app.app_context():
-        assert get_nethz() is None
 
 
 def test_not_admin(app):

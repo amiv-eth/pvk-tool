@@ -52,6 +52,13 @@ DATE_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 BANDWIDTH_SAVER = False
 
 
+# Disable bulk insert
+# They are not compatible with uniqueness constraints
+# (see more here: https://github.com/pyeve/eve/issues/691)
+# In our case, we need time and room uniqueness nearly everywhere => disabled
+BULK_ENABLED = False
+
+
 # A schema for required start/end time tuple
 TIMESPAN_SCHEMA = {
     'type': 'dict',
@@ -67,6 +74,7 @@ TIMESPAN_SCHEMA = {
             'required': True,
         },
     },
+    'start_before_end': True,
 }
 
 
@@ -110,7 +118,7 @@ DOMAIN = {
                     'empty': False,
                     'nullable': False,
                 },
-                # TODO: Not the same nethz twice
+                # TODO: Not the same nethz twice (use new nocopies validator)
                 # TODO: Is nethz enough here?
             }
         },
@@ -129,10 +137,12 @@ DOMAIN = {
                     'embeddable': True
                 },
                 'not_patchable': True,  # Course is tied to lecture
+                'required': True,
             },
             'assistant': {
                 'type': 'string',
                 # TODO: Assistant needs to exist for lecture
+                # TODO: assistant timeslot
             },
 
             'signup': TIMESPAN_SCHEMA,
@@ -140,22 +150,21 @@ DOMAIN = {
             'datetimes': {
                 'type': 'list',
                 'schema': TIMESPAN_SCHEMA,
-                # TODO: Timeslots must not overlap
+                'no_time_overlap': True,
+                'unique_room_booking': True,
             },
             'room': {
                 'type': 'string',
                 'maxlength': 100,
-                'unique': True,
-                'required': True,
                 'nullable': False,
                 'empty': False,
-                # TODO: Room must be empty for time slot
+                'unique_room_booking': True,
             },
             'spots': {
                 'type': 'integer',
                 'min': 1,
                 'required': True,
-                'nullable': False
+                'nullable': False,
             }
         },
     },
@@ -184,7 +193,7 @@ DOMAIN = {
                 },
                 'unique_combination': ['nethz'],
                 'required': True,
-                # TODO: No overlapping courses
+                'no_course_overlap': 'signups',
             },
             'status': {
                 'type': 'string',
@@ -220,7 +229,7 @@ DOMAIN = {
                 },
                 'unique_combination': ['nethz'],
                 'required': True,
-                # TODO: No overlapping courses
+                'no_course_overlap': 'selections',
             },
         },
     },
@@ -235,9 +244,6 @@ DOMAIN = {
         # Also, there is no reason to ever change a payment.
         'user_methods': ['GET', 'POST'],
 
-        # Bulk inserts don't make sense here, so we disallow them
-        'bulk_enabled': False,
-
         'schema': {
             'signups': {
                 'type': 'list',
@@ -248,15 +254,17 @@ DOMAIN = {
                         'field': '_id',
                         'embeddable': True
                     },
-                    'no_waiting': True, # No signups on waiting list
-                    'no_accepted': True, # No signups which have already been paid
+                    # No signups on waiting list
+                    'no_waiting': True,
+                    # No signups which have already been paid
+                    'no_accepted': True,
                 },
                 'no_copies': True,
                 'required': True,
                 'nullable': False,
             },
             # Admins may leave this field empty
-            # However, it still has to be sent, even if it contains an empty string / None
+            # However, it still has to be sent, even if  empty or None
             'token': {
                 'type': 'string',
                 'unique': True,
@@ -264,13 +272,13 @@ DOMAIN = {
                 'nullable': True,
                 'only_admin_empty': True,
             },
-            'charge_id': { # Set by backend
+            'charge_id': {  # Set by payment backend
                 'type': 'string',
                 'unique': True,
                 'required': False,
                 'nullable': True,
             },
-            'amount': { # Set by backend
+            'amount': {  # Set by payment backend
                 'type': 'integer',
                 'required': False,
                 'nullable': True,

@@ -31,6 +31,9 @@ wheels/
 *.manifest
 *.spec
 
+# pytest
+.pytest_cache/
+
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt

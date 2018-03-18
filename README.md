@@ -63,33 +63,32 @@ But don't worry, it's very easy to set them up -- take a look at the
   mongo pvk_test --eval 'db.createUser({user:"pvk_user",pwd:"pvk_pass",roles:["readWrite"]});'
   ```
 
-- Secondly, set up your virtual environment, install requirements as well as
-  [py.test](https://docs.pytest.org/en/latest/).
+- Secondly, install [tox](https://tox.readthedocs.io/en/latest/) (a python
+  test automation tool), e.g. using `pip install tox`.
+
+- Now you can run the tests from the `Backend` direcotry with:
 
   ```bash
-  python -m venv env
-  source env/bin/activate
-  pip install -r requirements.txt
-  pip install pytest
+  tox
   ```
 
-- Finally, you can run the tests from your virtual environment with:
+  The tests itself are executed with
+  [py.test](https://docs.pytest.org/en/latest/). You can pass any
+  parameters to pytest afer two dashes, e.g. like this:
 
   ```bash
-  py.test
+  tox -- -x
   ```
 
 - Per default, integration tests with amivapi are skipped, since they require
   valid amivapi tokens. 
-
-  You can run  `py.test -rs` to get a summary including skipped tests.
 
   The api tests can be included by provide tokens for a user (*not in* the
   `PVK Admins` group) and an admin (*in* the `PVK Admins` group)
 
   ```bash
   # Replace <usertoken> and <admintoken> (including <>) with your tokens
-  py.test -rs --usertoken <usertoken> --admintoken <admintoken>
+  tox -- --usertoken <usertoken> --admintoken <admintoken>
   ```
 
   An easy way to aquire the tokens is `curl`:

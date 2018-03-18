@@ -54,24 +54,16 @@ def request_cache(key):
 
 @request_cache('apiuser')
 def get_user():
-    """Return user id if the token is valid, None otherwise."""
+    """Return user data if the token is valid, None otherwise."""
     if g.get('token') is not None:
         response = api_get(
             'sessions',
             where={'token': g.get('token', '')},
-            projection={'user': 1}
+            projection={'user': 1},
+            embedded={'user': 1}
         )
         if response:
             return response['_items'][0]['user']
-    return None
-
-
-@request_cache('nethz')
-def get_nethz():
-    """Return nethz of current user."""
-    if get_user() is not None:
-        response = api_get('users/' + get_user())
-        return response.get('nethz')
     return None
 
 
@@ -82,8 +74,8 @@ def is_admin():
     The result is saved in g, to avoid checking twice, so there is no
     performance loss if is_admin is called multiple times during a request.
     """
-    user_id = get_user()
-    if user_id is not None:
+    user = get_user()
+    if user is not None:
         # Find Group with correct name, return list of members
         groups = api_get(
             'groups',
@@ -95,7 +87,7 @@ def is_admin():
 
             membership = api_get(
                 'groupmemberships',
-                where={'user': user_id, 'group': group_id},
+                where={'user': user['_id'], 'group': group_id},
                 # This Projection currectly crashes AMIVAPI
                 # https://github.com/amiv-eth/amivapi/issues/206
                 # projection={'_id': 1}
@@ -148,4 +140,5 @@ def only_own_nethz(_, lookup):
     if not is_admin():
         # Add the additional lookup with an `$and` condition
         # or extend existing `$and`s
-        lookup.setdefault('$and', []).append({'nethz': get_nethz()})
+        lookup.setdefault('$and', []).append({
+            'nethz': get_user().get('nethz')})

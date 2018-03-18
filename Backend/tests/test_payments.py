@@ -38,7 +38,7 @@ def base_data(app):
                                    assert_status=201)
 
         signup = {
-            'nethz': 'Something',
+            'nethz': 'nethz',  # default dummy value for user nethz
             'course': response['_id']
         }
         app.client.post('signups',
@@ -233,14 +233,3 @@ def test_signup_unique_per_payment(app):
         app.client.post('payments',
                         data=payment,
                         assert_status=422)
-
-
-def test_no_batch_payments(app):
-    """Test that batch payments are disabled (Eve sends 400 in this case)."""
-    with app.admin():
-        batch = [{'signups': [], 'token': 'something'},
-                 {'signups': [], 'token': 'something'}]
-
-        app.client.post('payments',
-                        data=batch,
-                        assert_status=400)

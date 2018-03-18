@@ -99,11 +99,13 @@ def drop_database(application):
 
 
 @contextmanager
-def user(self, **kwargs):
+def user(self, nethz=None, membership=None, **kwargs):
     """Additional context to fake a user."""
     with self.test_request_context():
-        g.apiuser = 'Not None :)'
-        g.nethz = 'Something'
+        g.apiuser = {
+            'nethz': nethz or 'nethz',
+            'membership': membership or 'regular',
+        }
         g.admin = False
 
         # The test requests will use this header

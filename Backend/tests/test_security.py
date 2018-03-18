@@ -2,8 +2,9 @@
 
 import pytest
 
+from backend.settings import DOMAIN
 
-ALL_RESOURCES = ['lectures', 'courses', 'signups', 'selections', 'payments']
+ALL_RESOURCES = DOMAIN.keys()
 ADMIN_RESOURCES = ['lectures', 'courses']  # only admin can write
 PERSONAL_RESOURCES = ['signups', 'selections']  # users can only see their own
 
@@ -65,56 +66,49 @@ def test_user_cannot_write(app, resource):
                           assert_status=403)
 
 
-def test_signup_with_own_nethz_only(app):
-    """Users can only post singups with their own nethz."""
+@pytest.mark.parametrize('resource', ['signups', 'selections'])
+def test_signup_with_own_nethz_only(app, resource):
+    """Users can only post signups with their own nethz."""
     nethz = 'Something'
     with app.user(nethz=nethz):
         # Create fake course to sign up to
         course = str(app.data.driver.db['courses'].insert({}))
 
         # Try with other nethz
-        bad_signup = {
+        bad = {
             'nethz': 'Notthenethz',
             'course': course
         }
-        app.client.post('/signups',
-                        data=bad_signup,
+        app.client.post(resource,
+                        data=bad,
                         assert_status=422)
 
         # Try with own nethz
-        good_signup = {
+        good = {
             'nethz': nethz,
             'course': course
         }
-        app.client.post('/signups',
-                        data=good_signup,
+        app.client.post(resource,
+                        data=good,
                         assert_status=201)
 
 
-def test_selection_own_nethz(app):
-    """Users can only select courses for themselves."""
+@pytest.mark.parametrize('resource', ['signups', 'selections'])
+def test_signup_member_only(app, resource):
+    """Only members can sign up."""
     nethz = 'Something'
-    with app.user(nethz=nethz):
-        # Create fake course to select
+    with app.user(nethz=nethz, membership='none'):
+        # Create fake course to sign up to
         course = str(app.data.driver.db['courses'].insert({}))
 
         # Try with other nethz
-        bad_selection = {
-            'nethz': 'Notthenethz',
-            'course': course,
-        }
-        app.client.post('/selections',
-                        data=bad_selection,
-                        assert_status=422)
-
-        # Try with own nethz
-        good_selection = {
+        data = {
             'nethz': nethz,
-            'course': course,
+            'course': course
         }
-        app.client.post('/selections',
-                        data=good_selection,
-                        assert_status=201)
+        app.client.post(resource,
+                        data=data,
+                        assert_status=422)
 
 
 @pytest.mark.parametrize('resource', PERSONAL_RESOURCES)

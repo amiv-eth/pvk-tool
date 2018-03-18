@@ -207,28 +207,6 @@ def test_post_signups_triggers_update(app, course, mock_update):
     mock_update.assert_called_with(str(course))
 
 
-def test_batch_post_signups_triggers_update(app, course, mock_update):
-    """Test the the update of spots gets triggered correctly."""
-    # We need a second course to test everything
-    other_course = app.data.driver.db['courses'].insert({})
-
-    batch = [{
-        'course': str(course),
-        'nethz': 'bla'
-    }, {
-        'course': str(course),
-        'nethz': 'bli'
-    }, {
-        'course': str(other_course),
-        'nethz': 'bli'
-    }]
-    app.client.post('/signups', data=batch, assert_status=201)
-    # Same course doesn't get updated twice per request
-    print(mock_update.mock_calls)
-    mock_update.assert_has_calls([call(str(course)), call(str(other_course))],
-                                 any_order=True)
-
-
 def test_patch_signup_triggers_update(app, course, mock_update):
     """Test the the update of spots gets triggered correctly."""
     fake = app.data.driver.db['signups'].insert({
