@@ -5,6 +5,17 @@ import SidebarCard from './components/SidebarCard';
 
 
 class CourseView {
+  static view({ attrs: { courseId } }) {
+    // Get Lecture of Course
+    const course = courses.list.find(item => item._id === courseId);
+    // Otherwise display loading
+    return m('li', [
+      m('span', course ? course.lecture.title : 'Loading...'),
+    ]);
+  }
+}
+
+class CourseViewDeletable extends CourseView {
   static view({ attrs: { _id, courseId, remove } }) {
     // Get Lecture of Course
     const course = courses.list.find(item => item._id === courseId);
@@ -29,7 +40,7 @@ export default class UserSidebar {
         content: userCourses.selected.length ? [
           userCourses.selected.map(({ _id, course: courseId }) =>
             m(
-              CourseView,
+              CourseViewDeletable,
               { _id, courseId, remove() { userCourses.deselect(_id); } },
             )),
         ] : 'No courses selected.',
@@ -41,7 +52,7 @@ export default class UserSidebar {
         title: 'Waiting List',
         content: userCourses.waiting.map(({ _id, course: courseId }) =>
           m(
-            CourseView,
+            CourseViewDeletable,
             { _id, courseId, remove() { userCourses.free(_id); } },
           )),
       }),
@@ -52,7 +63,7 @@ export default class UserSidebar {
         content: userCourses.reserved.length ? [
           userCourses.reserved.map(({ _id, course: courseId }) =>
             m(
-              CourseView,
+              CourseViewDeletable,
               { _id, courseId, remove() { userCourses.free(_id); } },
             )),
         ] : 'No courses reserved.',
@@ -62,7 +73,14 @@ export default class UserSidebar {
 
       m(SidebarCard, {
         title: 'Accepted Courses',
-        content: 'No courses accepted.',
+        content: userCourses.accepted.length ? [
+          userCourses.accepted.map(({ course: courseId }) =>
+            m(
+              CourseView,
+              { courseId },
+
+            )),
+        ] : 'No courses accepted.',
       }),
     ];
   }
