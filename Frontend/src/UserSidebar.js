@@ -5,7 +5,7 @@ import SidebarCard from './components/SidebarCard';
 
 
 class CourseView {
-  static view({ attrs: { _id, courseId, remove } }) {
+  static view({ attrs: { /* _id, */ courseId, remove } }) {
     // Get Lecture of Course
     const course = courses.items[courseId];
     // Otherwise display loading
@@ -20,7 +20,7 @@ class CourseView {
     return m(SidebarCard, {
       title: 'Loading ...',
     });
-    /*m('li', [
+    /* m('li', [
       m('span', course ? course.lecture.title : 'Loading...'),
       // If there is no id, the element is not yet created,
       // so a delete button does not make any sense
