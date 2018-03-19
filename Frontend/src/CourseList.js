@@ -4,7 +4,7 @@
 import m from 'mithril';
 import { courses, userCourses } from './backend';
 import SidebarCard from './components/SidebarCard';
-import { isOverlapping, dateFormatterStart, dateFormatterEnd} from './utils';
+import { isOverlapping, dateFormatterStart, dateFormatterEnd } from './utils';
 import expandableContent from './components/Expandable';
 // To test the existence of data
 // import isExistentialCrisisHappening from './Testing';
