@@ -117,7 +117,7 @@ function dateFormatterEnd(datestring) {
 function displayCard(course) {
   // returns SidebarCard for given course
   const attributes = {
-    title: `Assistent: ${course.assistant}`,
+    title: `Assistant: ${course.assistant}`,
     subtitle: `Room: ${course.room}`,
     content:
       m('ul', course.datetimes.map(timeslot =>
@@ -175,7 +175,7 @@ export default class CourseList {
     courses.getAll();
   }
 
-  // draw the SidebarCard sorted by year and lecture.name filtered by department
+  // draw the SidebarCard sorted  year and lecture.name filtered by department
   static view() {
     const coursesFilteredByDepartment = coursesByDeparment(courses.list, selectedDepartment);
     return getUniqueYears(coursesFilteredByDepartment).map(year =>

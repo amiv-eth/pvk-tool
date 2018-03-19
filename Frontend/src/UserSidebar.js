@@ -9,12 +9,23 @@ class CourseView {
     // Get Lecture of Course
     const course = courses.items[courseId];
     // Otherwise display loading
-    return m('li', [
+    if (course) {
+      return m(SidebarCard, {
+        title: course.lecture.title,
+        subtitle: [course.assistant, ' - ', course.room],
+        actionName: 'X',
+        action() { remove(); },
+      });
+    }
+    return m(SidebarCard, {
+      title: 'Loading ...',
+    });
+    /*m('li', [
       m('span', course ? course.lecture.title : 'Loading...'),
       // If there is no id, the element is not yet created,
       // so a delete button does not make any sense
       m('button', { onclick: remove, disabled: !_id }, 'X'),
-    ]);
+    ]); */
   }
 }
 
