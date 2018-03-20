@@ -4,7 +4,6 @@
 import m from 'mithril';
 import { courses, userCourses } from './backend';
 import SidebarCard from './components/SidebarCard';
-// import isOverlapping from './timeOverlap';
 import {
   getCourseObject,
   dateFormatterStart,
@@ -12,9 +11,6 @@ import {
   isOverlappingTime,
 } from './utils';
 import expandableContent from './components/Expandable';
-// To test the existence of data
-// import isExistentialCrisisHappening from './Testing';
-
 
 // choose itet oder mavt
 const selectedDepartment = 'mavt';
@@ -61,6 +57,7 @@ function displayCard(course) {
   const chosenUserCourses = userCourses.selected;
   userCourses.waiting.forEach(element => chosenUserCourses.push(element));
   userCourses.reserved.forEach(element => chosenUserCourses.push(element));
+  // TODO: Add the accepted Courses to the list of chosenUserCourses
   // get the start and end timess for eaech course and then test the overlap
   if (chosenUserCourses.length !== 0) {
     chosenUserCourses.forEach((selectedCourse) => {
@@ -86,7 +83,6 @@ function displayCard(course) {
   }
   return m(SidebarCard, attributes);
 }
-
 
 export default class CourseList {
   // get courses on initiating webpage
