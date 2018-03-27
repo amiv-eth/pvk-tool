@@ -47,6 +47,8 @@ COURSE_PRICE = 1000
 # ISO 8601 time format instead of rfc1123
 DATE_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 
+# Email Format
+EMAIL_REGEX = '^.+@.+$'
 
 # More Feedback when creating something: Return all fields
 BANDWIDTH_SAVER = False
@@ -84,6 +86,28 @@ STANDARD_ERRORS = [400, 401, 403, 404, 405, 406, 409, 410, 412, 422, 428]
 
 # Resources
 DOMAIN = {
+    'assistants': {
+        'user_methods': ['GET'],
+
+        'schema': {
+            'name': {
+                'type': 'string',
+                'maxlength': 100,
+                'required': True,
+                'nullable': False,
+                'empty': False,
+            },
+            'email': {
+                'type': 'string',
+                'maxlength': 100,
+                'regex': EMAIL_REGEX,
+                'required': True,
+                'unique': True,
+                'nullable': True,
+            }
+        }
+    },
+
     'lectures': {
 
         'user_methods': ['GET'],
@@ -109,18 +133,6 @@ DOMAIN = {
                 'max': 3,
                 'required': True
             },
-            'assistants': {
-                # List of nethz of assistants
-                'type': 'list',
-                'schema': {
-                    'type': 'string',
-                    'maxlength': 10,
-                    'empty': False,
-                    'nullable': False,
-                },
-                # TODO: Not the same nethz twice (use new nocopies validator)
-                # TODO: Is nethz enough here?
-            }
         },
     },
 
@@ -140,9 +152,13 @@ DOMAIN = {
                 'required': True,
             },
             'assistant': {
-                'type': 'string',
-                # TODO: Assistant needs to exist for lecture
-                # TODO: assistant timeslot
+                'type': 'objectid',
+                'data_relation': {
+                    'resource': 'assistants',
+                    'field': '_id',
+                    'embeddable': True,
+                    'unique_assistant_booking': True,
+                },
             },
 
             'signup': TIMESPAN_SCHEMA,
@@ -152,6 +168,7 @@ DOMAIN = {
                 'schema': TIMESPAN_SCHEMA,
                 'no_time_overlap': True,
                 'unique_room_booking': True,
+                'unique_assistant_booking': True,
             },
             'room': {
                 'type': 'string',

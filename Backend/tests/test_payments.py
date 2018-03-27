@@ -10,7 +10,6 @@ def base_data(app):
             'title': 'Awesome Lecture',
             'department': 'itet',
             'year': 3,
-            'assistants': ['pablo', 'pablone'],
         }
         lecture = app.client.post('lectures',
                                   data=lecture_data,
@@ -18,8 +17,7 @@ def base_data(app):
 
         course = {
             'lecture': lecture['_id'],
-            'assistant': 'anon',
-            'room': 'ETZ f 6',
+            'room': 'ETZ F 6',
             'spots': 20,
             'signup': {
                 'start': '2021-05-01T10:00:00Z',

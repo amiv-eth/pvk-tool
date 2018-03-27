@@ -12,15 +12,22 @@ def test_create(app):
             'title': "Awesome Lecture",
             'department': "itet",
             'year': 3,
-            'assistants': ['pablo', 'pablone'],
         }
         lecture_response = app.client.post('lectures',
                                            data=lecture,
                                            assert_status=201)
 
+        assistant = {
+            'name': "Pablo Pablone",
+            'email': "pablop@ethz.ch",
+        }
+        assistant_response = app.client.post('assistants',
+                                             data=assistant,
+                                             assert_status=201)
+
         course = {
             'lecture': lecture_response['_id'],
-            'assistant': 'pablo',
+            'assistant': assistant_response['_id'],
             'room': 'ETZ E 6',
             'spots': 30,
             'signup': {
@@ -52,6 +59,8 @@ def test_create(app):
         app.client.post('signups',
                         data=signup,
                         assert_status=201)
+
+        # Payment is tested separately
 
 
 def test_no_double_signup(app):

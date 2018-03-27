@@ -12,7 +12,6 @@ def lecture(app):
             'title': "Time and Space",
             'department': "itet",
             'year': 2,
-            'assistants': ['pablo'],
         }
         return app.client.post('lectures',
                                data=lecture,
@@ -23,7 +22,6 @@ def test_start_time_before_end(app, lecture):
     """Test that any start time must come before end time."""
     correct = {
         'lecture': lecture,
-        'assistant': 'pablo',
         'spots': 10,
         'datetimes': [{
             'start': '2019-01-09T10:00:00Z',
@@ -33,7 +31,6 @@ def test_start_time_before_end(app, lecture):
 
     wrong = {
         'lecture': lecture,
-        'assistant': 'pablo',
         'spots': 10,
         'datetimes': [{
             'start': '2019-02-09T13:00:00Z',
@@ -53,7 +50,6 @@ def courses(app, lecture):
 
         same_time = {
             'lecture': lecture,
-            'assistant': 'pablo',
             'spots': 10,
             'datetimes': [{
                 'start': '2019-01-09T10:00:00Z',
@@ -145,7 +141,6 @@ def test_no_double_booking_of_room(app, lecture):
         room = 'LEE E 12'
         first = {
             'lecture': lecture,
-            'assistant': 'pablo',
             'room': room,
             'spots': 10,
             'datetimes': [{
@@ -156,7 +151,6 @@ def test_no_double_booking_of_room(app, lecture):
 
         second = {
             'lecture': lecture,
-            'assistant': 'pablo',
             'room': room,
             'spots': 20,
             'datetimes': [{
@@ -174,16 +168,66 @@ def test_no_double_booking_of_room(app, lecture):
 
         # Posting only one is ok, but the second one will fail
         app.client.post('courses', data=first, assert_status=201)
-        print("NOW")
         app.client.post('courses', data=second, assert_status=422)
 
         # Posting the second course with a different room is ok
         second['room'] = 'other %s' % room
         response = app.client.post('courses', data=second, assert_status=201)
 
-        # Patching the time or room without overlap is ok:
+        # Patching without overlap is ok
         url = 'courses/%s' % response['_id']
         separate_room = {'room': 'another different %s' % room}
+        response = app.client.patch(url, data=separate_room,
+                                    headers={'If-Match': response['_etag']},
+                                    assert_status=200)
+
+
+def test_unique_assistant(app, lecture):
+    """Test that an assistant cannot be set for overlapping courses."""
+    with app.admin():
+        # Create dummy assistants
+        assistant = str(app.data.driver.db['assistants'].insert({}))
+        other_assistant = str(app.data.driver.db['assistants'].insert({}))
+        another_assistant = str(app.data.driver.db['assistants'].insert({}))
+
+        first = {
+            'lecture': lecture,
+            'assistant': assistant,
+            'spots': 10,
+            'datetimes': [{
+                'start': '2018-12-06T10:00:00Z',
+                'end': '2018-12-06T13:00:00Z',
+            }],
+        }
+
+        second = {
+            'lecture': lecture,
+            'assistant': assistant,
+            'spots': 20,
+            'datetimes': [{
+                # Contains the first course
+                'start': '2018-12-06T9:00:00Z',
+                'end': '2018-12-06T15:00:00Z',
+            }, {
+                'start': '2018-12-10T13:00:00Z',
+                'end': '2018-12-10T14:00:00Z',
+            }, {
+                'start': '2018-12-10T15:00:00Z',
+                'end': '2018-12-10T16:00:00Z',
+            }],
+        }
+
+        # Posting only one is ok, but the second one will fail
+        app.client.post('courses', data=first, assert_status=201)
+        app.client.post('courses', data=second, assert_status=422)
+
+        # Posting the second course with a different assistant is ok
+        second['assistant'] = other_assistant
+        response = app.client.post('courses', data=second, assert_status=201)
+
+        # Patching without overlap is ok
+        url = 'courses/%s' % response['_id']
+        separate_room = {'assistant': another_assistant}
         response = app.client.patch(url, data=separate_room,
                                     headers={'If-Match': response['_etag']},
                                     assert_status=200)
@@ -194,7 +238,6 @@ def patch_courses(app, lecture):
     """Courses that nearly overlap."""
     first = {
         'lecture': lecture,
-        'assistant': 'pablo',
         'room': 'ETZ E 1',
         'spots': 10,
         'datetimes': [{
@@ -205,7 +248,6 @@ def patch_courses(app, lecture):
     # Second course has same room but different time
     second = {
         'lecture': lecture,
-        'assistant': 'pablo',
         'room': 'ETZ E 1',
         'spots': 10,
         'datetimes': [{
@@ -216,7 +258,6 @@ def patch_courses(app, lecture):
     # Third course has different room but same time
     third = {
         'lecture': lecture,
-        'assistant': 'pablo',
         'room': 'ETZ E 2',
         'spots': 10,
         'datetimes': [{
@@ -227,7 +268,6 @@ def patch_courses(app, lecture):
     # Control course has different room and time
     control = {
         'lecture': lecture,
-        'assistant': 'pablo',
         'room': 'ETZ E 3',
         'spots': 10,
         'datetimes': [{
@@ -306,7 +346,6 @@ def test_patch_self_overlap(app, lecture):
     }
     data = {
         'lecture': lecture,
-        'assistant': 'pablo',
         'room': 'someroom',
         'spots': 10,
         'datetimes': [time_1, time_2],

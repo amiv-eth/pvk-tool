@@ -35,7 +35,6 @@ class APIValidator(Validator):
         Furthermore, the user must be a member to use his nethz.
         Only admins can sign up someone else.
         """
-        print(get_user())
         if enabled and not is_admin():
             if value != get_user().get('nethz'):
                 self._error(field,
@@ -99,13 +98,13 @@ class APIValidator(Validator):
         if enabled and(value.get('start') > value.get('end')):
             self._error(field, 'start time must be earlier then end time.')
 
-    def _validate_unique_room_booking(self, enabled, field, _):
+    def _validate_unique_room_booking(self, enabled, field, value):
         """A room can not be used at the same time by several courses."""
-        # Get new room and timespans for current course
+        # Compatibility with both room and datetime fields for POST and PATCH
         room = self._get_field('room')
         timespans = self._get_field('datetimes')
 
-        # Get _id of current course (needed for path) and filter to ignore it
+        # Get _id of current course and filter to ignore it
         course_id = self._get_field('_id')
         id_filter = {'_id': {'$ne': course_id}} if course_id else {}
 
@@ -119,7 +118,26 @@ class APIValidator(Validator):
 
             if has_overlap(*timespans, *other_timespans):
                 self._error(field, "the room '%s' is already occupied by "
-                                   "another course at the same time")
+                                   "another course at the same time" % value)
+
+    def _validate_unique_assistant_booking(self, enabled, field, value):
+        """An assistant can not hold several courses simultaneously."""
+        # See room booking comments
+        assistant = self._get_field('assistant')
+        timespans = self._get_field('datetimes')
+
+        course_id = self._get_field('_id')
+        id_filter = {'_id': {'$ne': course_id}} if course_id else {}
+
+        if enabled and timespans and assistant:
+            course_db = current_app.data.driver.db['courses']
+            courses = course_db.find({'assistant': assistant, **id_filter})
+            other_timespans = chain.from_iterable(course['datetimes']
+                                                  for course in courses)
+
+            if has_overlap(*timespans, *other_timespans):
+                self._error(field, "the assistant '%s' is giving "
+                                   "another course at the same time" % value)
 
     def _validate_no_time_overlap(self, enabled, field, value):
         """Multiple timeslots of the same course must not overlap."""
