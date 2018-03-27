@@ -15,7 +15,7 @@ class CourseView {
   }
 }
 
-class CourseViewDeletable extends CourseView {
+class CourseViewDeletable {
   static view({ attrs: { _id, courseId, remove } }) {
     // Get Lecture of Course
     const course = courses.list.find(item => item._id === courseId);
@@ -69,6 +69,7 @@ export default class UserSidebar {
         ] : 'No courses reserved.',
         action() { userCourses.pay(); },
         actionName: 'pay',
+        actionActive: userCourses.reserved.length > 0,
       }),
 
       m(SidebarCard, {

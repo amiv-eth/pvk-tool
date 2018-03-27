@@ -12,8 +12,6 @@ const handler = StripeCheckout.configure({
   locale: 'auto',
   allowRememberMe: false,
   token: (token) => {
-    // You can access the token ID with `token.id`.
-    // Get the token ID to your server-side code for use.
     m.request({
       method: 'POST',
       url: `${pvkApiUrl}/payments`,
@@ -25,7 +23,6 @@ const handler = StripeCheckout.configure({
         Authorization: `Token ${session.data.token}`,
       },
     }).then(() => {
-      // TODO: This only sometimes works
       // Update the sidebar
       userCourses.getAll();
       // Show a confirmation dialog

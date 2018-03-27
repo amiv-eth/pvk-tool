@@ -1,7 +1,6 @@
 // Api calls
 
 import m from 'mithril';
-import { Dialog } from 'polythene-mithril';
 import session from './session';
 import handler from './stripe_frontend';
 
@@ -278,23 +277,13 @@ export const userCourses = {
   },
 
   pay() {
-    // Get how many courses are reserved to calculate the amount
-    const rescourses = userCourses.reserved.length;
-    // Check if reserved Courses are empty, so that you don't pay for 0 courses
-    if (rescourses >= 1) {
-      // Open Checkout with further options:
-      handler.open({
-        name: 'AMIV PVK',
-        zipCode: false,
-        amount: 1000 * rescourses,
-        currency: 'CHF',
-      });
-    } else {
-      Dialog.show({
-        title: 'You have no reserved courses!',
-        body: 'Please select courses and wait until your courses are reserved before you pay.',
-      });
-    }
+    // Trigger Stripe Checkout
+    handler.open({
+      name: 'AMIV PVK',
+      zipCode: false,
+      amount: 1000 * userCourses.reserved.length,
+      currency: 'CHF',
+    });
   },
 };
 
