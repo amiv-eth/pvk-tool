@@ -7,7 +7,7 @@ CAREFUL: This script will delete everything existing!
 """
 
 import sys
-from random import randint
+from random import randint, sample
 from datetime import datetime as dt, timedelta
 import requests
 
@@ -16,9 +16,15 @@ AMIVAPI_DEV_URL = "https://amiv-api.ethz.ch"
 PVK_DEV_URL = 'http://pvk-api-dev.amiv.ethz.ch'
 
 DATE_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
-ASSISTANTS = ['pablo', 'assi', 'anon']
+# Number of courses
+MIN_CLOSED = 1
+MAX_CLOSED = 3
+MIN_OPEN = 2
+MAX_OPEN = 4
+# Spots per course
 MIN_SPOTS = 20
 MAX_SPOTS = 40
+NUM_TIMESLOTS = 20  # limited number of unique timeslots to get overlap
 
 
 def login(username, password):
@@ -59,13 +65,25 @@ def create_lectures(department, token):
                 'title': lecture % special_name,
                 'year': year,
                 'department': department,
-                'assistants': ASSISTANTS,
             }
             response = post('lectures', data, token)
             if response:
                 lectures.append(response['_id'])
 
     return lectures
+
+
+def create_assistants(token):
+    """Create a new assistant, yield _id."""
+    i = 0
+    while True:
+        data = {
+            'name': 'Pablo%s' % i,
+            'email': 'pablo_%s@amiv.ethz.ch' % i,
+        }
+        response = post('assistants', data, token)
+        yield response['_id']
+        i += 1
 
 
 def room_gen():
@@ -76,26 +94,36 @@ def room_gen():
         i += 1
 
 
-def time_gen(starting_day):
-    """Produce a stream of non-overlapping time ranges."""
+def nethz_gen():
+    """Produce nethz."""
+    i = 0
     while True:
+        yield "s%d" % i
+        i += 1
+
+
+def timeslots(starting_day):
+    """Produce a stream of non-overlapping time ranges."""
+    result = [];
+    for _ in range(0, NUM_TIMESLOTS):
         year = starting_day.year
         month = starting_day.month
         day = starting_day.day
 
-        # Always create pairs of courses that overlap (for testing)
-        for _ in range(2):
-            # Random start and end time
-            start = dt(year, month, day, randint(7, 10)).strftime(DATE_FORMAT)
-            end = dt(year, month, day, randint(11, 14)).strftime(DATE_FORMAT)
-            yield {'start': start, 'end': end}
+        # Random start and end time
+        start = dt(year, month, day, randint(7, 10)).strftime(DATE_FORMAT)
+        end = dt(year, month, day, randint(11, 14)).strftime(DATE_FORMAT)
+        result.append({'start': start, 'end': end})
 
         # Only one slot per day to avoid overlap
         starting_day += timedelta(days=1)
 
+    return result
+
 
 ROOM = room_gen()
-TIME = time_gen(dt.now() + timedelta(days=90))  # Sometime in the future
+NETHZ = nethz_gen()
+TIMESLOTS = timeslots(dt.now() + timedelta(days=90))  # Some time in the future
 
 
 def create_course(lecture, assistant, token, open_signup=True):
@@ -113,7 +141,7 @@ def create_course(lecture, assistant, token, open_signup=True):
             'end': end.strftime(DATE_FORMAT),
         },
 
-        'datetimes': [next(TIME) for _ in range(randint(1, 3))],
+        'datetimes': sample(TIMESLOTS, randint(1, 3)),
         'room': next(ROOM),
         'spots': randint(MIN_SPOTS, MAX_SPOTS),
     }
@@ -124,9 +152,9 @@ def create_course(lecture, assistant, token, open_signup=True):
 
 def create_signups(course, token):
     """Create random number of signups to a course."""
-    for ind in range(randint(0, 2*MAX_SPOTS)):
+    for _ in range(randint(0, 2*MAX_SPOTS)):
         data = {
-            'nethz': 'student%d' % ind,
+            'nethz': next(NETHZ),  # All different nethz to avoid overlap
             'course': course['_id'],
         }
         post('signups', data, token)
@@ -161,11 +189,15 @@ def main():
 
     # Order is important! some things can't be deleted before others
     print('Clearing existing data...')
-    for res in ['payments', 'signups', 'courses', 'selections', 'lectures']:
+    for res in ['payments', 'signups', 'courses', 'selections', 'lectures',
+                'assistants']:
         print('Removing %s...' % res)
         clear(res, token)
 
-    # Create courses
+    # Init generator for assistants
+    assistants = create_assistants(token)
+
+    # Create data
     # (Repeat for itet and mavt)
     for department in ['itet', 'mavt']:
         print('Department: %s' % department)
@@ -175,15 +207,15 @@ def main():
 
         print('Creating courses with closed signup...')
         for lecture in lectures:
-            for ind in range(randint(0, 2)):
-                create_course(lecture, ASSISTANTS[ind],
+            for _ in range(randint(MIN_CLOSED, MAX_CLOSED)):
+                create_course(lecture, next(assistants),
                               token, open_signup=False)
 
         print('Creating courses with open signup...')
         courses = []
         for lecture in lectures:
-            for ind in range(randint(2, len(ASSISTANTS))):
-                courses.append(create_course(lecture, ASSISTANTS[ind], token))
+            for _ in range(randint(MIN_OPEN, MAX_OPEN)):
+                courses.append(create_course(lecture, next(assistants), token))
 
         print('Creating signups...')
         for course in courses:
