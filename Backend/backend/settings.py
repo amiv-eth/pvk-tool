@@ -16,7 +16,7 @@ X_DOMAINS = '*'
 X_HEADERS = ['Authorization', 'If-Match', 'If-Modified-Since', 'Content-Type']
 
 # AMIVAPI URL and Admin Group
-AMIVAPI_URL = 'https://amiv-api.ethz.ch'
+AMIVAPI_URL = 'https://api.amiv.ethz.ch'
 ADMIN_GROUP_NAME = 'PVK Admins'
 
 # DB (can be set by env for easier CI tests)

@@ -1,6 +1,3 @@
-// TODO: Most of the non-dev urls are not yet live, replace them with correct
-// versions as soon as available
-
 // AMIV API config
 export const adminGroupName = 'PVK Admins';
 export const amivApiUrl = 'https://api.amiv.ethz.ch';

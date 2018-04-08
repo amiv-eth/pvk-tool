@@ -12,8 +12,8 @@ from datetime import datetime as dt, timedelta
 import requests
 
 
-AMIVAPI_DEV_URL = "https://amiv-api.ethz.ch"
-PVK_DEV_URL = 'http://pvk-api-dev.amiv.ethz.ch'
+AMIVAPI_DEV_URL = "https://api-dev.amiv.ethz.ch"
+PVK_DEV_URL = 'https://pvk-api-dev.amiv.ethz.ch'
 
 DATE_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 # Number of courses
