@@ -218,6 +218,11 @@ DOMAIN = {
                 'readonly': True,
                 'default': 'waiting',
             },
+            'checked_in': {
+                'type': 'boolean',
+                'default': None,
+                'not_patchable': True,
+            },
         },
     },
 

@@ -168,3 +168,37 @@ def test_admin_signup_visibility(app, resource):
 
         # Delete (etag missing again)
         app.client.delete(url, headers=headers, assert_status=412)
+
+
+def test_checkin_authorization(app):
+    """Test that only an admin can check-in a user at an event."""
+    with app.user():
+        # Create mock signup
+        str(app.data.driver.db['signups'].insert({'nethz': 'igor',
+                                                 'course': 'hunting'}))
+
+        # GET on the event to get the _etag
+        url = '/signups?where={"nethz":"igor", "course":"hunting"}'
+        r = app.client.get(url, assert_status=200)
+        etag = r['_etag']
+
+        # Prepare and send PATCH request
+        headers = {'If-Match': etag}
+        payload = {"checked_in": "True"}
+        app.client.patch(url, headers=headers, data=payload, assert_status=422)
+
+    with app.admin():
+        # Create mock signup
+        str(app.data.driver.db['signups'].insert({
+                                                  'nethz': 'igor',
+                                                  'course': 'hunting'}))
+
+        # GET on the event to get the _etag
+        url = '/signups?where={"nethz":"igor", "course":"hunting"}'
+        r = app.client.get(url, assert_status=200)
+        etag = r['_etag']
+
+        # Prepare and send PATCH request
+        headers = {'If-Match': etag}
+        payload = {"checked_in": "True"}
+        app.client.patch(url, headers=headers, data=payload, assert_status=200)

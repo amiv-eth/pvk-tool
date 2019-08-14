@@ -40,7 +40,7 @@ def test_success(app):
 
 
 def test_zero_spots(app):
-    """Settings spots to zero will just put everyone on the waiting list."""
+    """Setting spots to zero will just put everyone on the waiting list."""
     with app.admin():
         # Create fake courses to sign up to
         course_id = str(app.data.driver.db['courses'].insert({'spots': 0}))
@@ -118,7 +118,7 @@ def test_course_independence(app):
 def test_update_spots(app):
     """Test the main update function.
 
-    As a key for sorting the _updated timestamp will be used, with
+    As a key for sorting, the _updated timestamp will be used, with
     nethz as a tie breaker
     """
     with app.admin():
