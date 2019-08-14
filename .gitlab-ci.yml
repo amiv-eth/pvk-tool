@@ -17,6 +17,52 @@ frontend_eslint:
     - npm run lint
     - cd ..
 
+frontend_build_master:
+  stage: build
+  
+  image: docker:latest
+  services:
+    - docker:dind
+  
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+
+  script:
+    - docker build --pull -t "$CI_REGISTRY_IMAGE_FRONTEND" ./Frontend/
+    - docker push "$CI_REGISTRY_IMAGE_FRONTEND"
+  
+  only:
+    - master
+
+frontend_build:
+  stage: build
+
+  image: docker:latest
+  services:
+    - docker:dind
+
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+
+  script:
+    - docker build --pull -t "$CI_REGISTRY_IMAGE_FRONTEND:$CI_COMMIT_REF_SLUG" ./Frontend/
+    - docker push "$CI_REGISTRY_IMAGE_FRONTEND:$CI_COMMIT_REF_SLUG"
+  
+  except:
+    - master
+
+frontend_deploy:
+  stage: deploy
+
+  image: amiveth/service-update-helper
+
+  script:
+    - export CI_DEPLOY_SERVICE="$CI_DEPLOY_SERVICE_FRONTEND"
+    - /update.py
+
+  only:
+    - master
+
 backend_tests:
   stage: test
   image: python:alpine
@@ -74,16 +120,11 @@ backend_build:
 backend_deploy:
   stage: deploy
 
-  image: jaromirpufler/docker-openssh-client
-
-  variables:
-    SSH_DEPLOY_KEY: $DEPLOY_PRIVATE_KEY
+  image: amiveth/service-update-helper
 
   script:
-    - ssh -4 $DEPLOY_HOST "docker service update --image $CI_REGISTRY_IMAGE_BACKEND --force $DEPLOY_SERVICE_BACKEND;"
+    - export CI_DEPLOY_SERVICE="$CI_DEPLOY_SERVICE_BACKEND"
+    - /update.py
 
   only:
     - master
-
-# There is no production server yet
-# backend_deploy_master:
